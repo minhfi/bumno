@@ -123,11 +123,10 @@ flowchart TD
 flowchart TD
     F1[Intake<br/>resolve repo, read code] --> F2{Lane?}
     F2 -->|Bigger| F0[Stop, recommend /feature]
-    F2 -->|Lane 0 / Lane 1| F3[Clean tree, branch fix/slug]
+    F2 -->|Lane 0 / Lane 1| F3[Clean tree, branch fix/slug<br/>record baseline]
     F3 --> F4{Lane}
     F4 -->|"Lane 0: no behavior change"| L0[Edit] --> V0[lint, typecheck, build]
-    F4 -->|"Lane 1: local bug ≤ ~3 files"| L1[Record baseline]
-    L1 --> L2[diagnosing-bugs:<br/>reproduce, root cause]
+    F4 -->|"Lane 1: local bug ≤ ~3 files"| L2[diagnosing-bugs:<br/>reproduce, root cause]
     L2 --> L3[Failing regression test]
     L3 --> L4[Minimal fix]
     L4 --> V1[lint, typecheck, unit, build<br/>+ agent-browser if UI]

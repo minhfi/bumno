@@ -34,8 +34,8 @@ The caller gives you:
     - Set a named session (`export AGENT_BROWSER_SESSION=<slug>-e2e`) and close it when done.
     - `find ... --name` matches substrings case-insensitively — always add `--exact`.
     - Set the color scheme explicitly when screenshotting each theme.
-  - Scripted: run the Playwright scripts already in the repo (written in Phase 3). If none exist, report `skipped (no scripts)` — do not write them.
-  - `next-dev-loop`: only for Next.js 16.3+ with Turbopack. On older versions report `skipped (Next < 16.3)` and rely on `agent-browser`.
+  - Scripted: run the E2E scripts written in Phase 3 — with the repo's own Playwright setup (its e2e script / `npx playwright test`) if it has one, otherwise the Python scripts via `webapp-testing` (`python3 ...`). If none exist, report `skipped (no scripts)` — do not write them.
+  - `next-dev-loop`: only for Next.js 16.3+ with Turbopack. You cannot invoke skills, so read `.claude/skills/next-dev-loop/SKILL.md` (in the template root) and follow it with your own tools. On older versions report `skipped (Next < 16.3)` and rely on `agent-browser`.
   - Start the dev server(s) yourself if needed — for full-stack E2E, start the backend first and point the frontend at it — and stop them when done.
 
 ## Output

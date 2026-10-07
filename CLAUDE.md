@@ -78,7 +78,7 @@ When continuing, read the plan, then resume from the first unticked task.
    - Existing repo: record the **baseline** — run `test-runner` with lint, typecheck, and unit / integration once and write any failures to the plan's **Test results → Baseline** (see Guardrails).
 2. Set the plan's `Status` to `In progress`.
 3. Implement only what the approved plan covers. Follow the repo's existing architecture, patterns, and naming (and `docs/standards.md`); read relevant code first.
-   - Write the tests from the plan's **Test plan** here too (unit / integration, backend API / integration tests, and Playwright scripts for scripted E2E via `webapp-testing`), as tasks in the plan. Phase 4 only runs them — `test-runner` never writes tests.
+   - Write the tests from the plan's **Test plan** here too (unit / integration, backend API / integration tests, and scripted E2E — in the repo's own Playwright setup if it has one, otherwise Python Playwright scripts via `webapp-testing`), as tasks in the plan. Phase 4 only runs them — `test-runner` never writes tests.
 4. If something in the plan turns out wrong or blocked, stop and ask — update the plan before deviating. This includes design: build to the approved **Design** section; changing palette, type, or layout is a deviation. Likewise for the backend: changing an endpoint, a response shape, or the schema is a deviation.
 5. Tick off tasks in the plan as they are done.
 
@@ -114,7 +114,7 @@ Run every layer that applies; record results in the plan's **Test results** sect
 |---|---|
 | Unit / integration | `vitest` + `frontend-testing` (or the repo's existing runner) |
 | UI flow / E2E (interactive) | `agent-browser` — navigate, click, fill, screenshot the real app |
-| UI flow / E2E (scripted, repeatable) | `webapp-testing` — Playwright scripts |
+| UI flow / E2E (scripted, repeatable) | The repo's own Playwright setup if it has one; otherwise `webapp-testing` — Python Playwright scripts |
 | Next.js runtime check | `next-dev-loop` — only for Next.js 16.3+ with Turbopack; on older versions skip it (record `skipped (Next < 16.3)`) and rely on the `agent-browser` E2E layer. Do not upgrade Next.js unless the plan says so. |
 | UI quality audit | `web-design-guidelines` on changed UI files |
 | Backend API / integration | The backend repo's test runner, against a real local / test database (the repo's own test DB setup or service config) |

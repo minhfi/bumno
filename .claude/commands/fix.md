@@ -27,11 +27,13 @@ State the lane and the reason in one line:
 
 - The working tree must be clean — if it is not, stop and ask the user (never stash, commit, or discard their changes yourself).
 - Create a branch `fix/<slug>` from the branch currently checked out (do not switch to `main`/`master`).
-- **Lane 1:** record the baseline — run `test-runner` with lint, typecheck, and unit / integration once and note pre-existing failures.
+- Record the baseline — run `test-runner` once and note pre-existing failures:
+  - **Lane 0:** lint and typecheck.
+  - **Lane 1:** lint, typecheck, and unit / integration.
 
 ## 4. Fix
 
-**Lane 0:** make the edit, then run `test-runner` with lint, typecheck, and build.
+**Lane 0:** make the edit, then run `test-runner` with lint, typecheck, and build — no new failures compared to the baseline.
 
 **Lane 1:**
 1. Use `diagnosing-bugs`: reproduce the bug and find the root cause, not the symptom.
