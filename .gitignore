@@ -1,0 +1,7 @@
+# Code repos are cloned into workspace/ and keep their own git history
+workspace/*
+!workspace/.gitkeep
+
+# Plans are local working documents, not committed
+docs/plans/*
+!docs/plans/.gitkeep
