@@ -91,6 +91,12 @@ When a plan covers both a frontend and a backend repo:
 - If the contract must change mid-way, stop, update the plan, and get approval before changing either repo.
 - Baseline, tests, commits, and review run per repo.
 
+### Single-repo features
+
+When the plan, ticket, or user limits the work to one repo (frontend only or backend only):
+- If the change turns out to need the other repo (an API contract, a response field, a schema), stop and ask — do not work around it in this repo (client-side derivation, mocked data, guessed types).
+- Frontend-only work that uses an existing backend endpoint still gets a contract check in Phase 4: against the locally running backend if it is in `workspace/`, otherwise against the backend's API docs / schema. If neither is available, make it a `[manual]` task.
+
 ### Backend rules
 
 - Follow the backend repo's own stack, layering, and conventions (and `docs/standards.md` → **Backend**).
@@ -131,7 +137,7 @@ Run every layer that applies; record results in the plan's **Test results** sect
 | Group | Subagent | Layers | When |
 |---|---|---|---|
 | A | `test-runner` (one per repo) | lint, typecheck, unit / integration; backend repo also API / integration and migration | in parallel with B and C |
-| B | `test-runner` | UI flow / E2E (incl. `next-dev-loop` for Next.js 16.3+); full-stack E2E and contract when both repos changed | in parallel with A and C — except when B runs the backend (full-stack E2E / contract): then after the backend repo's A finishes |
+| B | `test-runner` | UI flow / E2E (incl. `next-dev-loop` for Next.js 16.3+); full-stack E2E and contract when both repos changed; contract also for frontend-only work using existing endpoints (see **Single-repo features**) | in parallel with A and C — except when B runs the backend (full-stack E2E / contract): then after the backend repo's A finishes |
 | C | general-purpose (`sonnet`) | `web-design-guidelines` on changed UI files | in parallel with A and B |
 | D | `test-runner` (one per repo) | build | after B finishes (`next build` and `next dev` share `.next/`) |
 
