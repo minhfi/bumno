@@ -1,6 +1,6 @@
 ---
 name: explorer
-description: Read-only fact finder for a repo in workspace/. Use in Phase 1 (Grill) and Phase 2 (Plan) to look up stack, scripts, repo docs, existing components and tokens, test setup, and code related to a feature. Returns facts with file paths, no recommendations.
+description: Read-only fact finder for a frontend or backend repo in workspace/. Use in Phase 1 (Grill) and Phase 2 (Plan) to look up stack, scripts, repo docs, existing components and tokens, API routes, data model and migrations, test setup, and code related to a feature. Returns facts with file paths, no recommendations.
 tools: Read, Grep, Glob, Bash
 model: haiku
 ---
@@ -14,11 +14,17 @@ The caller gives you the repo path and the questions to answer.
 ## What to check (only what the questions need)
 
 - **Repo docs:** `CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`, `README.md`, `docs/`, `.claude/` — summarize the rules that affect how code should be written.
-- **Stack:** framework and version, language, styling, state management, data fetching, package manager (from lockfile).
-- **Scripts:** lint, typecheck, test, e2e, build, dev commands from `package.json`.
-- **UI:** component library location, existing components relevant to the feature, design tokens (theme files, CSS variables, Tailwind config), Storybook if present.
-- **Tests:** runner, config, where tests live, an example test file.
+- **Stack:** framework and version, language, package manager / build tool (from lockfile or build files such as `package.json`, `pyproject.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Cargo.toml`, `*.csproj`).
+  - Frontend: styling, state management, data fetching.
+  - Backend: web framework, database, ORM / query layer, migration tool, auth mechanism, queues / jobs.
+- **Scripts:** lint, typecheck, test, e2e, build, dev, migrate commands from the build file, `Makefile` / `justfile` / `Taskfile`, CI config, or the README.
+- **UI (frontend):** component library location, existing components relevant to the feature, design tokens (theme files, CSS variables, Tailwind config), Storybook if present.
+- **API & data (backend):** routes / controllers / handlers, service and repository layering, request validation, error format, API schema files (OpenAPI, GraphQL, proto), models / entities, migrations folder and the latest migrations, seed data.
+- **Config & services:** example env / config files (key names only, never values), services the app needs locally (DB, cache, queue) and how the repo starts them (compose file, test containers, README).
+- **Tests:** runner, config, where tests live, how integration tests get a database, an example test file.
 - **Feature code:** files, routes, API clients, and types related to the question.
+
+Never print secret values from env / config files; report only key names.
 
 ## Output
 
