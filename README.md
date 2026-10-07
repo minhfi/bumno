@@ -32,7 +32,7 @@ Requirements: Node.js 20+, Python 3.9+, git, Claude Code.
 
 ## Usage
 
-1. Clone the target repo into `workspace/` (skip for a new app — it will be scaffolded there).
+1. Clone the target repo(s) into `workspace/` (skip for a new app — it will be scaffolded there). Frontend and backend are separate repos, e.g. `workspace/my-web` and `workspace/my-api`.
 2. Open this folder in Claude Code and run:
 
    ```
@@ -44,6 +44,10 @@ Requirements: Node.js 20+, Python 3.9+, git, Claude Code.
 4. Claude implements on a `feature/<slug>` branch, tests, commits, reviews against the plan, and reports. It does not push or open a PR unless you ask.
 
 If a plan is left `Approved` or `In progress`, the next session offers to resume it from the first unticked task.
+
+### Frontend + backend features
+
+When a feature needs both repos, one plan covers both. The plan's **Backend** section fixes the API contract (endpoints, request / response, errors), schema changes and migrations, and new config — this is approved together with the rest of the plan. Claude builds the backend first, then the frontend against that contract, using the same `feature/<slug>` branch name in each repo. Baseline, tests, commits, and review run per repo; Phase 4 adds backend API / integration tests (local / test DB only), a migration up / down check, a FE ↔ BE contract check, and full-stack E2E. Backend rules are stack-agnostic and live in [docs/standards.md](docs/standards.md) → **Backend**.
 
 ### Small fixes
 
@@ -91,16 +95,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    G["1. Grill<br/>grill-me + explorer lookups<br/>no code"] --> P["2. Plan<br/>docs/plans/YYYY-MM-DD-slug.md<br/>+ design pass if UI"]
+    G["1. Grill<br/>grill-me + explorer lookups<br/>no code"] --> P["2. Plan<br/>docs/plans/YYYY-MM-DD-slug.md<br/>+ design pass if UI<br/>+ backend pass if BE"]
     P --> A{Approve this plan?}
     A -->|Change request| P
-    A -->|Approved| I1["3. Implement<br/>clean tree, branch feature/slug<br/>record baseline"]
-    I1 --> I2[Build to plan + write tests<br/>tick tasks]
+    A -->|Approved| I1["3. Implement<br/>per repo: clean tree, branch feature/slug<br/>record baseline"]
+    I1 --> I2[Build to plan + write tests<br/>backend first, then frontend<br/>tick tasks]
     I2 -->|Plan wrong or blocked| A
     I2 --> TA & TB & TC
     subgraph T4 ["4. Test (subagents)"]
-        TA[A: lint, typecheck, unit]
-        TB[B: E2E]
+        TA[A: lint, typecheck, unit<br/>+ BE API / integration, migration]
+        TB[B: E2E<br/>+ contract, full-stack E2E]
         TC[C: web-design-guidelines]
         TB --> TD[D: build]
     end
@@ -140,8 +144,9 @@ flowchart TD
 |---|---|
 | Grill | `grill-me` |
 | Plan (design pass) | `frontend-design` (no UI source), Figma MCP (Figma), `frontend-design-system` (existing components) |
-| Implement | `frontend-react-typescript`, `frontend-api-integration`, `frontend-accessibility`, `vercel-react-best-practices`, `vercel-composition-patterns`, `next-best-practices` |
-| Test | `vitest`, `frontend-testing`, `agent-browser`, `webapp-testing`, `next-dev-loop`, `web-design-guidelines`; `diagnosing-bugs` on failure |
+| Plan (backend pass) | No skill — rules in `CLAUDE.md` and `docs/standards.md` → **Backend** |
+| Implement | Frontend: `frontend-react-typescript`, `frontend-api-integration`, `frontend-accessibility`, `vercel-react-best-practices`, `vercel-composition-patterns`, `next-best-practices`. Backend: the repo's own conventions + `docs/standards.md` → **Backend** |
+| Test | `vitest`, `frontend-testing`, `agent-browser`, `webapp-testing`, `next-dev-loop`, `web-design-guidelines`; backend repo's own test runner and migration tool; `diagnosing-bugs` on failure |
 | Review | `git-commit`, `code-review` (Standards: `docs/standards.md` + repo docs; Spec: the plan) |
 
 ## Subagents
@@ -149,7 +154,7 @@ flowchart TD
 Defined in `.claude/agents/` to keep long output out of the main context:
 
 - `explorer` (Haiku, read-only) — looks up repo facts during Grill and Plan.
-- `test-runner` (Sonnet, reports only) — runs lint, typecheck, unit, E2E, and build in Phase 4 and returns a compact pass/fail report. Groups run in parallel; build runs last.
+- `test-runner` (Sonnet, reports only) — runs lint, typecheck, unit, backend API / integration, migration, contract, E2E, and build in Phase 4 and returns a compact pass/fail report. Works with any stack (reads commands from the repo's build files and docs) and uses only a local / test database. Groups run in parallel; build runs last.
 
 ## Layout
 

@@ -56,3 +56,47 @@ Scope: React, TypeScript, JavaScript, HTML/CSS, API integration.
 
 - Test user-visible behavior with user-centric queries (role, label, text).
 - Cover normal and edge cases; add a regression test for every bug fixed.
+
+## Backend
+
+Scope: any backend stack (API services, workers, databases). Rules are stack-agnostic; use the repo's own framework idioms to apply them.
+
+### API design
+
+- Follow the repo's existing style (REST / RPC / GraphQL), URL and field naming, and versioning.
+- Correct status codes; one consistent error format across endpoints (use the repo's existing one).
+- Paginate list endpoints; never return unbounded collections.
+- Keep changes backward compatible for existing clients; breaking changes need a new version or an agreed migration path.
+- The API contract in the plan is the source of truth; code and docs (OpenAPI / schema files, if the repo has them) match it.
+
+### Validation & errors
+
+- Validate and normalize all input at the boundary (body, query, params, headers); never trust the client.
+- Return clear, client-safe error messages; never leak stack traces, SQL, or internal details.
+- Handle expected failures explicitly (not found, conflict, forbidden); do not swallow errors.
+
+### Data
+
+- Schema changes only through the repo's migration tool; migrations are reversible (or document why not) and safe on existing data.
+- Use transactions for multi-step writes that must succeed or fail together.
+- Avoid N+1 queries; add indexes for new query patterns.
+- Keep business logic out of controllers / handlers; follow the repo's layering (e.g. service / repository).
+
+### Security
+
+- Enforce authentication and authorization on every endpoint, checked server-side, including ownership of the resource.
+- Parameterized queries or the ORM only; never build SQL or commands by string concatenation.
+- Secrets only in env / config, never in code or commits; add new keys to the repo's example config without real values.
+- Never log secrets, tokens, passwords, or personal data.
+
+### Reliability & performance
+
+- Timeouts on every outbound call (HTTP, DB, queues); retry only idempotent operations.
+- Make write endpoints and jobs that may be retried idempotent.
+- Structured logs at meaningful points (with request / correlation ID if the repo has one); no noisy debug logs.
+
+### Testing
+
+- Integration test for every new or changed endpoint: success, validation error, unauthorized / forbidden, not found, and relevant edge cases.
+- Tests run against a local / test database, never a shared or remote one; each test sets up and cleans up its own data.
+- Unit test non-trivial business logic; add a regression test for every bug fixed.

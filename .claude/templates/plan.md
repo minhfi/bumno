@@ -3,10 +3,15 @@
 - **Status:** Draft | Approved | In progress | Done
 - **Date:** YYYY-MM-DD
 - **Ticket:** `<JIRA-KEY>` — <summary> (or "none")
-- **Target repo:** `workspace/<repo>` (existing | new app)
-- **Stack (new app only):**
-- **Base branch:** `<branch checked out in the repo when Phase 3 starts>`
-- **Feature branch:** `feature/<slug>`
+- **Stack (new app only):** FE: … / BE: …
+
+### Repos
+
+_One row per repo. Base branch = the branch checked out in that repo when Phase 3 starts. Same feature branch name in every repo. Multi-repo order: backend first, then frontend._
+
+| Repo | Role | Existing / new | Base branch | Feature branch |
+|---|---|---|---|---|
+| `workspace/<repo>` | FE / BE | existing / new app | `<base>` | `feature/<slug>` |
 
 ## Goal
 
@@ -45,9 +50,37 @@ _Filled in Phase 2 — this is what gets approved. For no UI source:_
 
 - **Principles:** the one memorable element; what stays quiet
 
-## Data & API
+## Backend
 
-Endpoints, request/response types, state management, error handling.
+_Remove if the feature has no backend work. Filled in Phase 2 — this contract is what gets approved and what both repos build to._
+
+### Endpoints
+
+| Method | Path | Auth / permission | Request | Response | Errors |
+|---|---|---|---|---|---|
+| | | | | | `400` …, `401`, `403`, `404` |
+
+### Data model & migrations
+
+- Schema changes (tables / columns / indexes):
+- Migration(s) and rollback:
+- Effect on existing data:
+
+### Jobs / events
+
+-
+
+### Config / env
+
+- New keys (added to the repo's example config, no real values):
+
+### Backward compatibility
+
+- Existing clients affected:
+
+## Data & API (frontend)
+
+How the frontend consumes the API: types, client / adapter, state management, error handling.
 
 ## UI states
 
@@ -58,17 +91,21 @@ Endpoints, request/response types, state management, error handling.
 
 ## Files
 
-| File | Change |
-|---|---|
-| | create / modify |
+| Repo | File | Change |
+|---|---|---|
+| | | create / modify |
 
 ## Tasks
 
-_Include writing the tests from the Test plan (unit / integration, Playwright scripts) — Phase 4 only runs them._
+_Include writing the tests from the Test plan (unit / integration, backend API / integration, Playwright scripts) — Phase 4 only runs them._
+_Group by repo; backend tasks first when both repos change._
 _Mark tasks that can't be tested automatically `[manual]` and list their steps: preconditions, steps, expected result._
 
+**Backend — `workspace/<repo>`**
 - [ ] 1.
-- [ ] 2.
+
+**Frontend — `workspace/<repo>`**
+- [ ] 1.
 
 ## Acceptance criteria
 
@@ -76,12 +113,17 @@ _Mark tasks that can't be tested automatically `[manual]` and list their steps: 
 
 ## Test plan
 
-| Layer | Skill / tool | Cases |
-|---|---|---|
-| Unit / integration | `vitest` | |
-| UI flow | `agent-browser` / `webapp-testing` | |
-| UI audit | `web-design-guidelines` | |
-| Lint / typecheck / build | repo scripts | |
+| Repo | Layer | Skill / tool | Cases |
+|---|---|---|---|
+| FE | Unit / integration | `vitest` | |
+| FE | UI flow | `agent-browser` / `webapp-testing` | |
+| FE | UI audit | `web-design-guidelines` | |
+| BE | Unit | repo test runner | |
+| BE | API / integration | repo test runner + local / test DB | |
+| BE | Migration | repo migration tool (up / down / up) | |
+| FE + BE | Contract | schema diff / contract tests / request per endpoint | |
+| FE + BE | Full-stack E2E | `agent-browser` / `webapp-testing`, both apps running | |
+| each | Lint / typecheck / build | repo scripts | |
 
 ## Risks & open questions
 
@@ -91,12 +133,12 @@ _Mark tasks that can't be tested automatically `[manual]` and list their steps: 
 
 ### Baseline
 
-_Filled in Phase 3 before any change: failures in lint / typecheck / unit that already exist on the base branch (or "none")._
+_Filled in Phase 3 before any change, per repo: failures in lint / typecheck / unit / integration that already exist on the base branch (or "none")._
 
 ### Phase 4
 
-_Filled in after Phase 4. Pass = no new failures compared to the baseline._
+_Filled in after Phase 4, per repo. Pass = no new failures compared to the baseline._
 
 ## Review
 
-_Filled in after Phase 5: findings per axis (Standards / Spec) and how each was handled._
+_Filled in after Phase 5, per repo: findings per axis (Standards / Spec) and how each was handled._

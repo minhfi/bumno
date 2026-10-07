@@ -21,7 +21,7 @@ State the lane and the reason in one line:
 
 - **Lane 0** — no behavior change (typo, copy text, comment, config value).
 - **Lane 1** — wrong behavior with a local cause, ≤ ~3 files, no new requirement.
-- Bigger (new requirement, many modules, design change) → stop and recommend `/feature`, saying why. If a fix grows past its lane mid-way, stop and tell the user before switching.
+- Bigger (new requirement, many modules, design change, or any change to a DB schema / migration, an API contract, or auth / permissions) → stop and recommend `/feature`, saying why. If a fix grows past its lane mid-way, stop and tell the user before switching.
 
 ## 3. Prepare the repo
 
@@ -35,9 +35,9 @@ State the lane and the reason in one line:
 
 **Lane 1:**
 1. Use `diagnosing-bugs`: reproduce the bug and find the root cause, not the symptom.
-2. Write a regression test that fails because of the bug (`vitest` + `frontend-testing`, or the repo's runner). If it truly cannot be automated, write `[manual]` reproduction and verification steps instead.
+2. Write a regression test that fails because of the bug (frontend: `vitest` + `frontend-testing`, or the repo's runner; backend: the repo's runner, an API / integration test against a local / test DB when the bug is in an endpoint). If it truly cannot be automated, write `[manual]` reproduction and verification steps instead.
 3. Make the minimal fix. Do not refactor unrelated code; follow `docs/standards.md` and the repo's own standards.
-4. Verify with `test-runner` (lint, typecheck, unit / integration, build): the new test passes and there are no new failures compared to the baseline. For a UI bug, also check it in the running app with `agent-browser`.
+4. Verify with `test-runner` (lint, typecheck, unit / integration, build): the new test passes and there are no new failures compared to the baseline. For a UI bug, also check it in the running app with `agent-browser`; for a backend bug, also run the repo's API / integration tests.
 
 ## 5. Commit and report
 
