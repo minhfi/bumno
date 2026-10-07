@@ -14,6 +14,7 @@ An AI delivery workflow: **Grill → Plan → Approve → Implement → Test →
 
 This file and `docs/standards.md` override the user's global `~/.claude/CLAUDE.md` wherever they overlap or conflict. In particular:
 - **Approval:** follow this file's approval gate. An approved plan covers every file and change it lists — do not ask again per file or per new code, even though the global rules say to.
+  - `/fix` has no plan: invoking it (directly or routed from `/task`) approves every change within its lane, including the regression test. Ask again only when the fix grows past its lane.
 - **Coding standards:** use `docs/standards.md` (or the target repo's own documented standards, which take precedence over it), not the global Frontend rules.
 
 ## When this workflow applies
@@ -75,7 +76,7 @@ When continuing, read the plan, then resume from the first unticked task.
 1. **Prepare the repo** (each repo in the plan)
    - Existing repo: make sure the working tree is clean — if it is not, stop and ask the user (never stash, commit, or discard their changes yourself). Then create a branch `feature/<slug>` from the branch currently checked out (that is the base branch — do not switch to `main`/`master`). Record it in the plan.
    - New app: scaffold it into `workspace/<app>` with the stack's official generator, `git init`, make an initial commit on `main`, then branch `feature/<slug>`.
-   - Existing repo: record the **baseline** — run `test-runner` with lint, typecheck, and unit / integration once and write any failures to the plan's **Test results → Baseline** (see Guardrails).
+   - Existing repo: record the **baseline** — run `test-runner` once with lint, typecheck, unit / integration, and build (backend repo: also API / integration) and write any failures to the plan's **Test results → Baseline** (see Guardrails).
 2. Set the plan's `Status` to `In progress`.
 3. Implement only what the approved plan covers. Follow the repo's existing architecture, patterns, and naming (and `docs/standards.md`); read relevant code first.
    - Write the tests from the plan's **Test plan** here too (unit / integration, backend API / integration tests, and scripted E2E — in the repo's own Playwright setup if it has one, otherwise Python Playwright scripts via `webapp-testing`), as tasks in the plan. Phase 4 only runs them — `test-runner` never writes tests.
@@ -130,11 +131,12 @@ Run every layer that applies; record results in the plan's **Test results** sect
 | Group | Subagent | Layers | When |
 |---|---|---|---|
 | A | `test-runner` (one per repo) | lint, typecheck, unit / integration; backend repo also API / integration and migration | in parallel with B and C |
-| B | `test-runner` | UI flow / E2E (incl. `next-dev-loop` for Next.js 16.3+); full-stack E2E and contract when both repos changed | in parallel with A and C |
+| B | `test-runner` | UI flow / E2E (incl. `next-dev-loop` for Next.js 16.3+); full-stack E2E and contract when both repos changed | in parallel with A and C — except when B runs the backend (full-stack E2E / contract): then after the backend repo's A finishes |
 | C | general-purpose (`sonnet`) | `web-design-guidelines` on changed UI files | in parallel with A and B |
 | D | `test-runner` (one per repo) | build | after B finishes (`next build` and `next dev` share `.next/`) |
 
 - Give each subagent the repo path(s), its layers, and (for B and C) the acceptance criteria and changed files from the plan. For B with both repos, also pass the **Backend** contract and how to start each app.
+- The backend's API / integration tests and migration check (A) reset and roll back the local / test database, so they must not run while B uses the running backend on that database.
 - Backend-only feature: skip B's UI layers and C; run the contract check against the plan's **Backend** section.
 - Only the main session writes the plan's **Test results** section.
 - **agent-browser tips:** set a named session (`export AGENT_BROWSER_SESSION=<slug>-e2e`) and close it when done. `find ... --name` matches substrings case-insensitively (e.g. `"Completed"` also hits "Clear completed") — always add `--exact`. Its browser may default to dark mode; set the color scheme explicitly when screenshotting each theme.

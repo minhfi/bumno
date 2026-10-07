@@ -133,7 +133,7 @@ _Mark tasks that can't be tested automatically `[manual]` and list their steps: 
 
 ### Baseline
 
-_Filled in Phase 3 before any change, per repo: failures in lint / typecheck / unit / integration that already exist on the base branch (or "none")._
+_Filled in Phase 3 before any change, per repo: failures in lint / typecheck / unit / integration / build (backend: also API / integration) that already exist on the base branch (or "none")._
 
 ### Phase 4
 

@@ -35,6 +35,7 @@ The caller gives you:
     - `find ... --name` matches substrings case-insensitively — always add `--exact`.
     - Set the color scheme explicitly when screenshotting each theme.
   - Scripted: run the E2E scripts written in Phase 3 — with the repo's own Playwright setup (its e2e script / `npx playwright test`) if it has one, otherwise the Python scripts via `webapp-testing` (`python3 ...`). If none exist, report `skipped (no scripts)` — do not write them.
+    - To start the app(s) around a Python script, use `python3 <template root>/.claude/skills/webapp-testing/scripts/with_server.py` (run it with `--help` first) — use that full path, since the skill's own `scripts/...` is relative to the skill folder.
   - `next-dev-loop`: only for Next.js 16.3+ with Turbopack. You cannot invoke skills, so read `.claude/skills/next-dev-loop/SKILL.md` (in the template root) and follow it with your own tools. On older versions report `skipped (Next < 16.3)` and rely on `agent-browser`.
   - Start the dev server(s) yourself if needed — for full-stack E2E, start the backend first and point the frontend at it — and stop them when done.
 

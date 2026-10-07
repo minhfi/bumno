@@ -28,8 +28,8 @@ State the lane and the reason in one line:
 - The working tree must be clean — if it is not, stop and ask the user (never stash, commit, or discard their changes yourself).
 - Create a branch `fix/<slug>` from the branch currently checked out (do not switch to `main`/`master`).
 - Record the baseline — run `test-runner` once and note pre-existing failures:
-  - **Lane 0:** lint and typecheck.
-  - **Lane 1:** lint, typecheck, and unit / integration.
+  - **Lane 0:** lint, typecheck, and build.
+  - **Lane 1:** lint, typecheck, unit / integration, and build; backend repo also API / integration.
 
 ## 4. Fix
 

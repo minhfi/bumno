@@ -57,7 +57,7 @@ For a typo, copy/config change, or a small local bug (≤ ~3 files, no new requi
 /fix <describe the fix or bug>
 ```
 
-Claude confirms the lane (recommends `/feature` if it is bigger), branches `fix/<slug>`, records a test baseline, reproduces the bug with a failing regression test, fixes it, verifies, commits, and reports. No push.
+Claude confirms the lane (recommends `/feature` if it is bigger), branches `fix/<slug>`, records a test baseline (including build), makes the change — for a bug (Lane 1), first reproducing it with a failing regression test — verifies, commits, and reports. No push. Invoking `/fix` approves every change within its lane.
 
 ### Jira tickets
 
@@ -106,6 +106,7 @@ flowchart TD
         TA[A: lint, typecheck, unit<br/>+ BE API / integration, migration]
         TB[B: E2E<br/>+ contract, full-stack E2E]
         TC[C: web-design-guidelines]
+        TA -.->|"BE A first when B runs the backend<br/>(shared local DB)"| TB
         TB --> TD[D: build]
     end
     TA & TD & TC --> R{New failures<br/>vs baseline?}
@@ -123,13 +124,13 @@ flowchart TD
 flowchart TD
     F1[Intake<br/>resolve repo, read code] --> F2{Lane?}
     F2 -->|Bigger| F0[Stop, recommend /feature]
-    F2 -->|Lane 0 / Lane 1| F3[Clean tree, branch fix/slug<br/>record baseline]
+    F2 -->|Lane 0 / Lane 1| F3[Clean tree, branch fix/slug<br/>record baseline incl. build<br/>+ BE API / integration for Lane 1]
     F3 --> F4{Lane}
     F4 -->|"Lane 0: no behavior change"| L0[Edit] --> V0[lint, typecheck, build]
     F4 -->|"Lane 1: local bug ≤ ~3 files"| L2[diagnosing-bugs:<br/>reproduce, root cause]
     L2 --> L3[Failing regression test]
     L3 --> L4[Minimal fix]
-    L4 --> V1[lint, typecheck, unit, build<br/>+ agent-browser if UI]
+    L4 --> V1[lint, typecheck, unit, build<br/>+ agent-browser if UI<br/>+ API / integration if BE]
     V0 & V1 --> C[git-commit + report<br/>no push]
 ```
 
