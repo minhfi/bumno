@@ -10,7 +10,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-There is no issue tracker. Specs and shared standards live in this delivery template's root (the folder holding `CLAUDE.md`), not inside the target repo under `workspace/`. Pass their absolute paths to the sub-agents.
+There is no issue tracker. Specs and shared standards live in this delivery workflow's root (the folder holding `CLAUDE.md`), not inside the target repo under `workspace/`. Pass their absolute paths to the sub-agents.
 
 ## Process
 
@@ -27,12 +27,12 @@ Before going further, confirm the fixed point resolves (`git rev-parse <fixed-po
 Look for the originating spec, in this order:
 
 1. A path the user passed as an argument.
-2. The plan in the template's `docs/plans/` whose `Feature branch` matches the current branch (`feature/<slug>`).
+2. The plan in the workflow's `docs/plans/` whose `Feature branch` matches the current branch (`feature/<slug>`).
 3. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
 
 ### 3. Identify the standards sources
 
-- The template's `docs/standards.md` (always).
+- The workflow's `docs/standards.md` (always).
 - Anything in the target repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`. Where it conflicts with `docs/standards.md`, the repo's own standard wins.
 
 On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below: a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:

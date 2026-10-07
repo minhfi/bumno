@@ -1,6 +1,6 @@
 # Claude Delivery Workflow
 
-A Claude Code template that turns a feature description into shipped, tested code:
+A Claude Code workflow that turns a feature description into shipped, tested code:
 
 **Grill → Plan → Approve → Implement → Test → Review → Report**
 
