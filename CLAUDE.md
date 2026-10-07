@@ -1,4 +1,4 @@
-# Simple Delivery Template
+# Claude Delivery Workflow
 
 An AI delivery workflow: **Grill → Plan → Approve → Implement → Test → Review → Report**.
 

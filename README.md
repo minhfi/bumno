@@ -1,4 +1,4 @@
-# SDD Template
+# Claude Delivery Workflow
 
 A Claude Code template that turns a feature description into shipped, tested code:
 
