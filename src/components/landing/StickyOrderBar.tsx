@@ -14,7 +14,7 @@ export function StickyOrderBar({ total, hidden }: Props) {
       <a
         href="#dat-hang"
         tabIndex={hidden ? -1 : undefined}
-        className="flex min-h-12 w-full items-center justify-center rounded-full bg-rim text-lg font-semibold text-white"
+        className="flex min-h-12 w-full items-center justify-center rounded-full bg-rim text-lg font-semibold text-on-rim"
       >
         {total > 0 ? `Đặt ngay · ${formatVnd(total)}` : "Đặt ngay"}
       </a>

@@ -11,7 +11,7 @@ export function OrderCard({ order, onOpen }: Props) {
     <li className={`rounded-xl border border-ink/12 p-4 ${order.status === "NEW" ? "bg-rim/6" : "bg-surface"}`}>
       <div className="flex items-start justify-between gap-3">
         <button type="button" onClick={() => onOpen(order.code)} className="text-left">
-          <span className="block font-semibold text-rim">
+          <span className="block font-semibold text-rim-strong">
             <span className="sr-only">Xem đơn </span>
             {order.code}
           </span>
@@ -26,7 +26,7 @@ export function OrderCard({ order, onOpen }: Props) {
           <span className="min-w-0 truncate" title={order.customerName}>
             {order.customerName}
           </span>
-          <a href={`tel:${order.phone}`} className="shrink-0 text-rim underline underline-offset-4">
+          <a href={`tel:${order.phone}`} className="shrink-0 text-rim-strong underline underline-offset-4">
             {order.phone}
           </a>
         </span>

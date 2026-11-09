@@ -17,7 +17,7 @@ const reasons = [
 export function Reasons() {
   return (
     <section aria-labelledby="reasons-title" className="mx-auto max-w-[1120px] px-5 py-12 sm:px-8 md:py-16">
-      <h2 id="reasons-title" className="font-display text-[40px] font-extrabold uppercase leading-none text-rim">
+      <h2 id="reasons-title" className="font-display text-[40px] font-extrabold uppercase leading-none text-rim-strong">
         Vì sao chọn Bumno
       </h2>
       <div className="mt-8 grid gap-8 md:grid-cols-3 md:gap-10">

@@ -2,17 +2,17 @@ import { STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderStatus } from "@/lib/orders/types";
 
 const tone: Record<OrderStatus, string> = {
-  NEW: "bg-rim/12 text-rim",
-  CONFIRMED: "bg-fish-sauce/15 text-ink",
-  DELIVERING: "bg-fish-sauce/30 text-ink",
+  NEW: "bg-rim/25 text-ink",
+  CONFIRMED: "bg-ink/8 text-ink",
+  DELIVERING: "bg-ink/15 text-ink",
   COMPLETED: "bg-herb/15 text-herb",
   CANCELLED: "bg-chili/12 text-chili",
 };
 
 const dot: Record<OrderStatus, string> = {
   NEW: "bg-rim",
-  CONFIRMED: "bg-fish-sauce",
-  DELIVERING: "bg-fish-sauce",
+  CONFIRMED: "bg-ink/45",
+  DELIVERING: "bg-ink",
   COMPLETED: "bg-herb",
   CANCELLED: "bg-chili",
 };

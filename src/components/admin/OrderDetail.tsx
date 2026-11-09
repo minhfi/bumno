@@ -128,7 +128,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               <dd>{order.customerName}</dd>
               <dt className="text-ink/70">SĐT</dt>
               <dd>
-                <a href={`tel:${order.phone}`} className="text-rim underline underline-offset-4">
+                <a href={`tel:${order.phone}`} className="text-rim-strong underline underline-offset-4">
                   {order.phone}
                 </a>
               </dd>
@@ -163,7 +163,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                     type="button"
                     disabled={busy}
                     onClick={() => save({ status: next }, "status")}
-                    className="min-h-11 rounded-lg bg-rim px-5 font-semibold text-enamel hover:bg-rim/90 disabled:opacity-60"
+                    className="min-h-11 rounded-lg bg-rim px-5 font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
                   >
                     {saving === "status" ? "Đang lưu…" : nextLabel}
                   </button>
@@ -216,12 +216,12 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                   setNote(e.target.value);
                   setNotice(null);
                 }}
-                className="mt-1.5 block w-full rounded-lg border border-ink/25 bg-surface px-3 py-2 focus:border-rim focus:outline-none"
+                className="mt-1.5 block w-full rounded-lg border border-ink/25 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-10 rounded-lg border border-rim px-4 font-medium text-rim hover:bg-rim/10 disabled:opacity-50"
+                className="mt-2 min-h-10 rounded-lg border border-rim-strong px-4 font-medium text-rim-strong hover:bg-rim/10 disabled:opacity-50"
               >
                 {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
               </button>

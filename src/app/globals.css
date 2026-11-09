@@ -1,14 +1,17 @@
 @import "tailwindcss";
 
 /*
- * Bumno palette — white enamel plate with a blue rim, fish-sauce amber, chili, rau răm.
+ * Bumno palette — white enamel plate with a yellow-orange rim, ink, chili, rau răm.
  * The landing page is light only; `.theme-admin` follows prefers-color-scheme.
  */
 :root {
   --enamel: #f7f9fa;
-  --rim: #1c4fa0;
+  /* Primary fill (buttons, plate rim); text on it uses --on-rim. */
+  --rim: #f59e0b;
+  /* Primary as text/borders on light backgrounds (4.7:1 on --enamel). */
+  --rim-strong: #b45309;
+  --on-rim: #1a2230;
   --ink: #1a2230;
-  --fish-sauce: #b9790f;
   --chili: #c8261c;
   --herb: #2f6b3a;
   --surface: #ffffff;
@@ -18,9 +21,9 @@
 @media (prefers-color-scheme: dark) {
   .theme-admin {
     --enamel: #121821;
-    --rim: #7fa6e8;
+    --rim: #fbbf24;
+    --rim-strong: #fbbf24;
     --ink: #e6eaf0;
-    --fish-sauce: #e2a53a;
     --chili: #f0675c;
     --herb: #7cc48a;
     --surface: color-mix(in oklab, #121821 88%, #e6eaf0);
@@ -31,8 +34,9 @@
 @theme inline {
   --color-enamel: var(--enamel);
   --color-rim: var(--rim);
+  --color-rim-strong: var(--rim-strong);
+  --color-on-rim: var(--on-rim);
   --color-ink: var(--ink);
-  --color-fish-sauce: var(--fish-sauce);
   --color-chili: var(--chili);
   --color-herb: var(--herb);
   --color-surface: var(--surface);
@@ -59,7 +63,7 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid var(--rim);
+  outline: 3px solid var(--rim-strong);
   outline-offset: 2px;
 }
 

@@ -19,7 +19,7 @@ export default function AdminLoginPage() {
       <Suspense>
         <RedirectIfSignedIn />
       </Suspense>
-      <p className="font-display text-3xl font-extrabold text-rim">Bumno</p>
+      <p className="font-display text-3xl font-extrabold text-rim-strong">Bumno</p>
       <h1 className="mt-2 text-2xl font-semibold">Đăng nhập quản lý đơn</h1>
       <LoginForm />
     </main>

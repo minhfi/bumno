@@ -42,7 +42,7 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? "admin-password-error" : undefined}
-          className="mt-1.5 block w-full rounded-lg border border-ink/25 bg-surface px-3 py-2.5 focus:border-rim focus:outline-none"
+          className="mt-1.5 block w-full rounded-lg border border-ink/25 bg-surface px-3 py-2.5 focus:border-rim-strong focus:outline-none"
         />
         {error ? (
           <p id="admin-password-error" role="alert" className="mt-1.5 text-sm font-medium text-chili">
@@ -53,7 +53,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="min-h-11 w-full rounded-lg bg-rim font-semibold text-enamel hover:bg-rim/90 disabled:opacity-60"
+        className="min-h-11 w-full rounded-lg bg-rim font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
       >
         {submitting ? "Đang đăng nhập…" : "Đăng nhập"}
       </button>

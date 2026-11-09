@@ -12,7 +12,7 @@ type Props = {
   onChange: (next: OrderFiltersValue) => void;
 };
 
-const controlClass = "rounded-lg border border-ink/25 bg-surface px-3 py-2 focus:border-rim focus:outline-none";
+const controlClass = "rounded-lg border border-ink/25 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none";
 
 export function OrderFilters({ value, today, onChange }: Props) {
   const [q, setQ] = useState(value.q ?? "");
@@ -74,7 +74,7 @@ export function OrderFilters({ value, today, onChange }: Props) {
             onChange={(e) => setQ(e.target.value)}
             className={`${controlClass} min-w-0 flex-1`}
           />
-          <button type="submit" className="rounded-lg border border-rim px-4 font-medium text-rim hover:bg-rim hover:text-enamel">
+          <button type="submit" className="rounded-lg border border-rim-strong px-4 font-medium text-rim-strong hover:bg-rim hover:text-on-rim">
             Tìm
           </button>
         </div>

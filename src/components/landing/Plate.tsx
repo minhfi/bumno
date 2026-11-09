@@ -1,5 +1,5 @@
 /**
- * Enamel plate with a thick blue rim. The drawing inside is a placeholder.
+ * Enamel plate with a thick yellow-orange rim. The drawing inside is a placeholder.
  * TODO(nội dung): thay bằng ảnh món thật (next/image) đặt trong đĩa.
  */
 export function Plate({ className = "" }: { className?: string }) {

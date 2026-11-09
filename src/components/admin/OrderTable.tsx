@@ -27,7 +27,7 @@ export function OrderTable({ orders, onOpen }: Props) {
               <button
                 type="button"
                 onClick={() => onOpen(order.code)}
-                className="font-semibold text-rim underline-offset-4 hover:underline"
+                className="font-semibold text-rim-strong underline-offset-4 hover:underline"
               >
                 <span className="sr-only">Xem đơn </span>
                 {order.code}

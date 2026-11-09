@@ -19,7 +19,7 @@ const emptyFields: Fields = { customerName: "", phone: "", address: "", delivery
 const fieldOrder: FieldName[] = ["items", "customerName", "phone", "address", "deliverySlot", "note"];
 
 const inputClass =
-  "mt-1.5 block w-full rounded-xl border-2 border-ink/20 bg-surface px-4 py-3 text-base placeholder:text-ink/65 focus:border-rim focus:outline-none disabled:bg-ink/5 aria-[invalid=true]:border-chili";
+  "mt-1.5 block w-full rounded-xl border-2 border-ink/20 bg-surface px-4 py-3 text-base placeholder:text-ink/65 focus:border-rim-strong focus:outline-none disabled:bg-ink/5 aria-[invalid=true]:border-chili";
 
 /** Recomputes today's bookable slots from the browser clock every minute (null until mounted). */
 function useSlots(): Date[] | null {
@@ -144,7 +144,7 @@ export function OrderForm() {
 
   return (
     <section ref={sectionRef} id="dat-hang" aria-labelledby="order-title" className="mx-auto max-w-[1120px] scroll-mt-4 px-5 py-12 sm:px-8 md:py-16">
-      <h2 id="order-title" className="font-display text-[40px] font-extrabold uppercase leading-none text-rim">
+      <h2 id="order-title" className="font-display text-[40px] font-extrabold uppercase leading-none text-rim-strong">
         Đặt hàng
       </h2>
       <p className="mt-3 max-w-[60ch] text-ink/80">
@@ -181,7 +181,7 @@ export function OrderForm() {
                             onClick={() => changeQuantity(item.id, -1)}
                             aria-disabled={quantities[item.id] === 0}
                             aria-label={`Bớt 1 ${item.name}`}
-                            className="grid size-11 place-items-center rounded-full border-2 border-rim text-xl font-semibold text-rim active:bg-rim/10 disabled:border-ink/15 disabled:text-ink/30 aria-disabled:border-ink/15 aria-disabled:text-ink/30"
+                            className="grid size-11 place-items-center rounded-full border-2 border-rim-strong text-xl font-semibold text-rim-strong active:bg-rim/10 disabled:border-ink/15 disabled:text-ink/30 aria-disabled:border-ink/15 aria-disabled:text-ink/30"
                           >
                             −
                           </button>
@@ -193,7 +193,7 @@ export function OrderForm() {
                             onClick={() => changeQuantity(item.id, 1)}
                             aria-disabled={quantities[item.id] >= MAX_QUANTITY}
                             aria-label={`Thêm 1 ${item.name}`}
-                            className="grid size-11 place-items-center rounded-full bg-rim text-xl font-semibold text-white active:bg-rim/85 disabled:bg-ink/15 aria-disabled:bg-ink/15"
+                            className="grid size-11 place-items-center rounded-full bg-rim text-xl font-semibold text-on-rim active:bg-rim/85 disabled:bg-ink/15 aria-disabled:bg-ink/15"
                           >
                             +
                           </button>
@@ -333,7 +333,7 @@ export function OrderForm() {
               )}
               <p aria-live="polite" className="mt-4 flex items-baseline justify-between border-t border-ink/10 pt-4">
                 <span className="font-semibold">Tạm tính</span>
-                <span className="font-display text-[28px] font-bold tabular-nums text-fish-sauce">
+                <span className="font-display text-[28px] font-bold tabular-nums text-ink">
                   {formatVnd(total)}
                 </span>
               </p>
@@ -353,7 +353,7 @@ export function OrderForm() {
                 disabled={disabled}
                 aria-disabled={submitting || undefined}
                 aria-describedby={closed ? "order-closed" : undefined}
-                className="mt-5 min-h-13 w-full rounded-full bg-rim text-lg font-semibold text-white hover:bg-rim/90 active:bg-rim/85 disabled:bg-ink/25 aria-disabled:bg-rim/70"
+                className="mt-5 min-h-13 w-full rounded-full bg-rim text-lg font-semibold text-on-rim hover:bg-rim/90 active:bg-rim/85 disabled:bg-ink/25 aria-disabled:bg-rim/70"
               >
                 {submitting ? "Đang gửi…" : "Đặt đơn"}
               </button>

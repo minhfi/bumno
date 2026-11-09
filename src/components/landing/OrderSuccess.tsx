@@ -28,7 +28,7 @@ export function OrderSuccess({ order, onNewOrder }: Props) {
       <button
         type="button"
         onClick={onNewOrder}
-        className="mt-6 min-h-12 rounded-full border-2 border-rim px-6 font-semibold text-rim hover:bg-rim hover:text-white"
+        className="mt-6 min-h-12 rounded-full border-2 border-rim-strong px-6 font-semibold text-rim-strong hover:bg-rim hover:text-on-rim"
       >
         Đặt đơn khác
       </button>
