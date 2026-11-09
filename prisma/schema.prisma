@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  DELIVERING
+  COMPLETED
+  CANCELLED
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  /// Display code is `BN-{number}`; the sequence starts at 1001 (see the init migration).
+  number       Int         @unique @default(autoincrement())
+  customerName String
+  phone        String
+  address      String
+  deliverySlot DateTime
+  note         String?
+  internalNote String?
+  status       OrderStatus @default(NEW)
+  /// Total in VND.
+  total        Int
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([phone])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  name      String
+  unitPrice Int
+  quantity  Int
+
+  @@index([orderId])
+}
