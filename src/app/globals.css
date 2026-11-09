@@ -1,26 +1,78 @@
 @import "tailwindcss";
 
+/*
+ * Bumno palette — white enamel plate with a blue rim, fish-sauce amber, chili, rau răm.
+ * The landing page is light only; `.theme-admin` follows prefers-color-scheme.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --enamel: #f7f9fa;
+  --rim: #1c4fa0;
+  --ink: #1a2230;
+  --fish-sauce: #b9790f;
+  --chili: #c8261c;
+  --herb: #2f6b3a;
+  --surface: #ffffff;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .theme-admin {
+    --enamel: #121821;
+    --rim: #7fa6e8;
+    --ink: #e6eaf0;
+    --fish-sauce: #e2a53a;
+    --chili: #f0675c;
+    --herb: #7cc48a;
+    --surface: color-mix(in oklab, #121821 88%, #e6eaf0);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-enamel: var(--enamel);
+  --color-rim: var(--rim);
+  --color-ink: var(--ink);
+  --color-fish-sauce: var(--fish-sauce);
+  --color-chili: var(--chili);
+  --color-herb: var(--herb);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-sign);
+}
+
+a,
+button {
+  touch-action: manipulation;
+}
+
+/* Keep focused elements clear of the sticky order bar on mobile. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: 5.5rem;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--enamel);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--rim);
+  outline-offset: 2px;
+}
+
+/* The only motion on the landing page: the hero settles in on load. */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-in {
+    animation: hero-in 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
 }
