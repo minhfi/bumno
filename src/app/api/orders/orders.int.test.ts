@@ -98,4 +98,16 @@ describe("POST /api/orders", () => {
     expect((await response.json()).error.code).toBe("RATE_LIMITED");
     expect((await post(validOrder, "10.0.0.10")).status).toBe(201);
   });
+
+  it("429 after 20 rejected requests from the same IP in 10 minutes", async () => {
+    for (let i = 0; i < 20; i++) expect((await post({ ...validOrder, phone: "123" }, "10.0.0.11")).status).toBe(400);
+    const response = await post(validOrder, "10.0.0.11");
+    expect(response.status).toBe(429);
+    expect(await db.order.count()).toBe(0);
+  });
+
+  it("rate-limits by the right-most X-Forwarded-For entry, ignoring client-supplied ones", async () => {
+    for (let i = 0; i < 5; i++) expect((await post(validOrder, `6.6.6.${i}, 10.0.0.12`)).status).toBe(201);
+    expect((await post(validOrder, "6.6.6.99, 10.0.0.12")).status).toBe(429);
+  });
 });

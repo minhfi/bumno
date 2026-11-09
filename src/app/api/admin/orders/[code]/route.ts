@@ -1,20 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/auth/session";
-import { errorResponse, invalidJson, readJson, unauthorized } from "@/lib/http";
+import { errorResponse, invalidJson, readJson, unauthorized, withErrorHandling } from "@/lib/http";
 import { fieldErrors, updateOrderSchema } from "@/lib/orders/schema";
 import { getOrderByCode, updateOrder } from "@/lib/orders/service";
 import { STATUS_LABELS } from "@/lib/orders/status";
 
 const notFound = () => errorResponse(404, "NOT_FOUND", "Không tìm thấy đơn hàng");
 
-export async function GET(request: NextRequest, ctx: RouteContext<"/api/admin/orders/[code]">) {
+type Context = RouteContext<"/api/admin/orders/[code]">;
+
+export const GET = withErrorHandling("GET /api/admin/orders/:code", async (request: NextRequest, ctx: Context) => {
   if (!isAdminRequest(request)) return unauthorized();
   const { code } = await ctx.params;
   const order = await getOrderByCode(code);
   return order ? NextResponse.json(order) : notFound();
-}
+});
 
-export async function PATCH(request: NextRequest, ctx: RouteContext<"/api/admin/orders/[code]">) {
+export const PATCH = withErrorHandling("PATCH /api/admin/orders/:code", async (request: NextRequest, ctx: Context) => {
   if (!isAdminRequest(request)) return unauthorized();
   const { code } = await ctx.params;
 
@@ -30,4 +32,4 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<"/api/admin/
   if (result.reason === "NOT_FOUND") return notFound();
   const from = result.from ? STATUS_LABELS[result.from] : "hiện tại";
   return errorResponse(409, "INVALID_TRANSITION", `Không thể chuyển đơn từ trạng thái "${from}" sang trạng thái này`);
-}
+});

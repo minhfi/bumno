@@ -34,11 +34,12 @@ export function useOrders(filters: OrderFiltersValue, onUnauthorized: () => void
     onUnauthorizedRef.current = onUnauthorized;
   }, [onUnauthorized]);
 
-  const load = useCallback(async () => {
+  /** `background` refreshes (polling) keep `loading` false so the list does not flash. */
+  const load = useCallback(async ({ background = false }: { background?: boolean } = {}) => {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
-    setState((current) => ({ ...current, loading: true }));
+    if (!background) setState((current) => ({ ...current, loading: true }));
     try {
       const data = await apiRequest<OrderListResponse>(`/api/admin/orders${query}`, { signal: controller.signal });
       setState({ data, error: null, loading: false });
@@ -58,10 +59,10 @@ export function useOrders(filters: OrderFiltersValue, onUnauthorized: () => void
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void load();
+      if (document.visibilityState === "visible") void load({ background: true });
     }, POLL_INTERVAL_MS);
     const onVisible = () => {
-      if (document.visibilityState === "visible") void load();
+      if (document.visibilityState === "visible") void load({ background: true });
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {

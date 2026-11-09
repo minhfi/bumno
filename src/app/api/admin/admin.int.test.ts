@@ -73,6 +73,14 @@ describe("POST /api/admin/login", () => {
     const blocked = await login(req("/api/admin/login", { method: "POST", body: { password: "test-admin-password" }, auth: false, ip: "10.1.0.7" }));
     expect(blocked.status).toBe(429);
   });
+
+  it("429 for everyone after 30 wrong passwords in total, even from rotating IPs", async () => {
+    for (let i = 0; i < 30; i++) {
+      expect((await login(req("/api/admin/login", { method: "POST", body: { password: "sai" }, auth: false, ip: `10.2.${i}.1` }))).status).toBe(401);
+    }
+    const blocked = await login(req("/api/admin/login", { method: "POST", body: { password: "test-admin-password" }, auth: false, ip: "10.3.0.1" }));
+    expect(blocked.status).toBe(429);
+  });
 });
 
 describe("POST /api/admin/logout", () => {

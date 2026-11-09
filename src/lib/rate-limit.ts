@@ -39,5 +39,10 @@ export function createRateLimiter({ limit, windowMs }: { limit: number; windowMs
 
 /** ≤ 5 orders / 10 minutes / IP. */
 export const orderRateLimiter = createRateLimiter({ limit: 5, windowMs: 10 * 60_000 });
+/** ≤ 20 order requests (including rejected ones) / 10 minutes / IP, so invalid spam is throttled too. */
+export const orderAttemptRateLimiter = createRateLimiter({ limit: 20, windowMs: 10 * 60_000 });
 /** ≤ 5 failed logins / 15 minutes / IP. */
 export const loginRateLimiter = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
+/** ≤ 30 failed logins / 15 minutes in total: caps password guessing even when a client rotates its IP. */
+export const GLOBAL_LOGIN_KEY = "*";
+export const globalLoginRateLimiter = createRateLimiter({ limit: 30, windowMs: 15 * 60_000 });

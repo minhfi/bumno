@@ -1,17 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { now } from "@/lib/clock";
-import { errorResponse, getClientIp, invalidJson, readJson } from "@/lib/http";
+import { errorResponse, getClientIp, invalidJson, readJson, withErrorHandling } from "@/lib/http";
 import { createOrderSchema, fieldErrors } from "@/lib/orders/schema";
 import { createOrder } from "@/lib/orders/service";
 import { isAcceptingOrders, isSlotAvailable } from "@/lib/orders/slots";
 import type { CreateOrderResponse } from "@/lib/orders/types";
-import { orderRateLimiter } from "@/lib/rate-limit";
+import { orderAttemptRateLimiter, orderRateLimiter } from "@/lib/rate-limit";
 
-export async function POST(request: NextRequest) {
+const rateLimited = () =>
+  errorResponse(429, "RATE_LIMITED", "Bạn đặt quá nhiều đơn trong thời gian ngắn. Vui lòng thử lại sau ít phút.");
+
+export const POST = withErrorHandling("POST /api/orders", async (request: NextRequest) => {
   const ip = getClientIp(request);
-  if (orderRateLimiter.isLimited(ip)) {
-    return errorResponse(429, "RATE_LIMITED", "Bạn đặt quá nhiều đơn trong thời gian ngắn. Vui lòng thử lại sau ít phút.");
-  }
+  if (orderRateLimiter.isLimited(ip) || orderAttemptRateLimiter.isLimited(ip)) return rateLimited();
+  orderAttemptRateLimiter.hit(ip);
 
   const body = await readJson(request);
   if (body === undefined) return invalidJson();
@@ -41,4 +43,4 @@ export async function POST(request: NextRequest) {
     items: order.items.map(({ name, unitPrice, quantity }) => ({ name, unitPrice, quantity })),
   };
   return NextResponse.json(response, { status: 201 });
-}
+});

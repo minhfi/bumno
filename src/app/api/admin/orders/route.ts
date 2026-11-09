@@ -1,12 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/auth/session";
 import { now } from "@/lib/clock";
-import { errorResponse, unauthorized } from "@/lib/http";
+import { errorResponse, unauthorized, withErrorHandling } from "@/lib/http";
 import { fieldErrors, listOrdersQuerySchema } from "@/lib/orders/schema";
 import { listOrders } from "@/lib/orders/service";
 import { shopDateString, shopDayRange } from "@/lib/orders/slots";
 
-export async function GET(request: NextRequest) {
+export const GET = withErrorHandling("GET /api/admin/orders", async (request: NextRequest) => {
   if (!isAdminRequest(request)) return unauthorized();
 
   const params = request.nextUrl.searchParams;
@@ -25,4 +25,4 @@ export async function GET(request: NextRequest) {
   if (!range) return errorResponse(400, "VALIDATION", "Bộ lọc không hợp lệ", { date: "Ngày không hợp lệ" });
 
   return NextResponse.json(await listOrders({ range, status, q: q || undefined, page }));
-}
+});
