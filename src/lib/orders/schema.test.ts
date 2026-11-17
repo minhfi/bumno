@@ -76,4 +76,22 @@ describe("updateOrderSchema", () => {
     expect(updateOrderSchema.safeParse({ internalNote: "" }).success).toBe(true);
     expect(updateOrderSchema.safeParse({ status: "CONFIRMED" }).success).toBe(true);
   });
+
+  it("accepts an address and items, with the same rules as a new order", () => {
+    expect(updateOrderSchema.safeParse({ address: "  12 Lê Lợi, Quận 1 " }).data?.address).toBe("12 Lê Lợi, Quận 1");
+    expect(updateOrderSchema.safeParse({ address: "abc" }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ items: [{ productId: "phan-thuong", quantity: 2 }] }).success).toBe(true);
+    expect(updateOrderSchema.safeParse({ items: [{ productId: "phan-thuong", quantity: 0 }] }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ items: [] }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ items: [{ productId: "phan-thuong", quantity: 21 }] }).success).toBe(false);
+    expect(
+      updateOrderSchema.safeParse({ items: [{ productId: "a", quantity: 1 }, { productId: "a", quantity: 1 }] }).success,
+    ).toBe(false);
+  });
+
+  it("does not combine a status change with an address or items", () => {
+    expect(updateOrderSchema.safeParse({ status: "CONFIRMED", address: "12 Lê Lợi, Quận 1" }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ status: "CONFIRMED", items: [{ productId: "phan-thuong", quantity: 1 }] }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ internalNote: "x", address: "12 Lê Lợi, Quận 1" }).success).toBe(true);
+  });
 });

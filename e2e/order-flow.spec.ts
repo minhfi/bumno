@@ -80,6 +80,52 @@ test.describe("order flow", () => {
   });
 });
 
+test.describe("editing an order", () => {
+  test("admin fixes the address and items of a new order, but not of a cancelled one", async ({ page, request }, testInfo) => {
+    await page.clock.setFixedTime(vnTime("07:00"));
+    const ip = `10.9.1.${testInfo.project.name === "mobile" ? 1 : 2}`;
+    const { code } = await createOrderViaApi(request, ip, `Khách sửa ${testInfo.project.name}`);
+    await login(page);
+    await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
+    const dialog = page.getByRole("dialog", { name: `Đơn ${code}` });
+    await expect(dialog).toContainText("99 Đường Thử, Quận 1");
+
+    await dialog.getByRole("button", { name: "Sửa địa chỉ và món" }).click();
+    await dialog.getByLabel("Địa chỉ giao").fill("12 Lê Lợi, Quận 1");
+    await dialog.getByRole("button", { name: "Thêm 1 Thêm bánh" }).click();
+    await expect(dialog).toContainText("60.000đ");
+    await dialog.getByRole("button", { name: "Lưu thay đổi" }).click();
+
+    await expect(dialog.getByText("Đã cập nhật")).toBeVisible();
+    await expect(dialog).toContainText("12 Lê Lợi, Quận 1");
+    await expect(dialog).toContainText("Thêm bánh");
+    await expect(dialog).toContainText("60.000đ");
+    await dialog.getByRole("button", { name: "Đóng" }).click();
+    await expect(page.getByRole("button", { name: `Xem đơn ${code}` })).toBeVisible();
+    await expect(page.getByText("60.000đ").filter({ visible: true }).first()).toBeVisible();
+
+    await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
+    await dialog.getByRole("button", { name: "Huỷ đơn" }).click();
+    await dialog.getByRole("button", { name: "Xác nhận huỷ" }).click();
+    await expect(dialog.getByText("Đã huỷ").first()).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Sửa địa chỉ và món" })).toHaveCount(0);
+  });
+
+  test("saving with no items shows an error and keeps the form open", async ({ page, request }, testInfo) => {
+    await page.clock.setFixedTime(vnTime("07:00"));
+    const ip = `10.9.2.${testInfo.project.name === "mobile" ? 1 : 2}`;
+    const { code } = await createOrderViaApi(request, ip, `Khách rỗng ${testInfo.project.name}`);
+    await login(page);
+    await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
+    const dialog = page.getByRole("dialog", { name: `Đơn ${code}` });
+    await dialog.getByRole("button", { name: "Sửa địa chỉ và món" }).click();
+    await dialog.getByRole("button", { name: "Bớt 1 Phần đặc biệt" }).click();
+    await dialog.getByRole("button", { name: "Lưu thay đổi" }).click();
+    await expect(dialog.getByText("Chọn ít nhất 1 món")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Lưu thay đổi" })).toBeVisible();
+  });
+});
+
 test.describe("admin access", () => {
   test("admin pages and APIs are blocked without login", async ({ page, request }) => {
     await page.goto("/admin/orders");

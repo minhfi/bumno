@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { formatVnd } from "@/config/menu";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
 import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
-import { ADVANCE_LABELS, canCancel, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
+import { ADVANCE_LABELS, canCancel, canEdit, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData, OrderStatus } from "@/lib/orders/types";
+import { OrderEditForm, type OrderEdit } from "./OrderEditForm";
 
 type Props = {
   code: string;
@@ -57,7 +58,8 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   const confirmCancelRef = useRef<HTMLButtonElement>(null);
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
-  const [saving, setSaving] = useState<"status" | "note" | null>(null);
+  const [saving, setSaving] = useState<"status" | "note" | "edit" | null>(null);
+  const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -87,7 +89,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
     if (confirmCancel) confirmCancelRef.current?.focus();
   }, [confirmCancel]);
 
-  async function save(changes: { status?: OrderStatus; internalNote?: string }, kind: "status" | "note") {
+  async function save(changes: { status?: OrderStatus; internalNote?: string } | OrderEdit, kind: "status" | "note" | "edit") {
     setSaving(kind);
     setActionError(null);
     setNotice(null);
@@ -99,6 +101,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       setLoad({ status: "ready", order });
       if (kind === "note") setNote(order.internalNote ?? "");
       setConfirmCancel(false);
+      if (kind !== "note") setEditing(false);
       setNotice("Đã cập nhật");
       onUpdated(order);
       // The clicked button may disappear after a status change; keep focus inside the dialog.
@@ -214,40 +217,69 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
 
             </div>
 
-            <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-5">
-              <h3 id="customer-title" className="sr-only">Khách hàng</h3>
-              <p className="text-lg font-semibold">{order.customerName}</p>
-              <a href={`tel:${order.phone}`} className="mt-0.5 inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
-                {order.phone}
-              </a>
-              <p className="mt-2 break-words">{order.address}</p>
-              {order.note ? (
-                <div className="mt-3 border-l-4 border-rim/60 pl-3">
-                  <p className="text-sm text-ink/65">Ghi chú của khách</p>
-                  <p className="whitespace-pre-line break-words text-ink/85">{order.note}</p>
-                </div>
-              ) : null}
-            </section>
+            {editing ? (
+              <OrderEditForm
+                order={order}
+                saving={saving === "edit"}
+                onSave={(edit) => void save(edit, "edit")}
+                onCancel={() => {
+                  setEditing(false);
+                  setActionError(null);
+                }}
+              />
+            ) : (
+              <>
+                <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-5">
+                  <h3 id="customer-title" className="sr-only">Khách hàng</h3>
+                  <p className="text-lg font-semibold">{order.customerName}</p>
+                  <a href={`tel:${order.phone}`} className="mt-0.5 inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
+                    {order.phone}
+                  </a>
+                  <p className="mt-2 break-words">{order.address}</p>
+                  {order.note ? (
+                    <div className="mt-3 border-l-4 border-rim/60 pl-3">
+                      <p className="text-sm text-ink/65">Ghi chú của khách</p>
+                      <p className="whitespace-pre-line break-words text-ink/85">{order.note}</p>
+                    </div>
+                  ) : null}
+                  {canEdit(order.status) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditing(true);
+                        setNotice(null);
+                        setActionError(null);
+                        setConfirmCancel(false);
+                      }}
+                      className="mt-4 min-h-11 rounded-lg border border-ink/20 px-4 font-semibold hover:bg-ink/6"
+                    >
+                      Sửa địa chỉ và món
+                    </button>
+                  ) : null}
+                </section>
 
-            <section aria-labelledby="items-title" className="border-t border-ink/10 pt-5">
-              <h3 id="items-title" className="font-semibold">Món</h3>
-              <ul className="mt-3 space-y-2 tabular-nums">
-                {order.items.map((item) => (
-                  <li key={item.productId} className="flex items-baseline gap-2">
-                    <span>
-                      {item.name} <span className="text-ink/65">× {item.quantity}</span>
-                    </span>
-                    <span aria-hidden className="mb-1 flex-1 border-b-2 border-dotted border-ink/20" />
-                    <span>{formatVnd(item.unitPrice * item.quantity)}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 flex items-baseline gap-2 border-t border-ink/10 pt-3">
-                <span className="font-semibold">Tổng</span>
-                <span aria-hidden className="flex-1" />
-                <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(order.total)}</span>
-              </p>
-            </section>
+                <section aria-labelledby="items-title" className="border-t border-ink/10 pt-5">
+                  <h3 id="items-title" className="font-semibold">Món</h3>
+                  <ul className="mt-3 space-y-2 tabular-nums">
+                    {order.items.map((item) => (
+                      <li key={item.productId} className="flex items-baseline gap-2">
+                        <span>
+                          {item.name} <span className="text-ink/65">× {item.quantity}</span>
+                        </span>
+                        <span aria-hidden className="mb-1 flex-1 border-b-2 border-dotted border-ink/20" />
+                        <span>{formatVnd(item.unitPrice * item.quantity)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 flex items-baseline gap-2 border-t border-ink/10 pt-3">
+                    <span className="font-semibold">Tổng</span>
+                    <span aria-hidden className="flex-1" />
+                    <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(order.total)}</span>
+                  </p>
+                </section>
+
+              </>
+            )}
 
             <form
               className="border-t border-ink/10 pt-5"

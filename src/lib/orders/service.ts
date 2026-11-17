@@ -1,9 +1,9 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { formatOrderCode, parseOrderCode } from "./code";
-import { priceOrder } from "./pricing";
-import type { CreateOrderData } from "./schema";
-import { canTransition } from "./status";
+import { priceOrder, repriceOrder } from "./pricing";
+import type { CreateOrderData, UpdateOrderData } from "./schema";
+import { canEdit, canTransition } from "./status";
 import type { OrderDetail, OrderListResponse, OrderStatus, OrderSummary } from "./types";
 
 export const PAGE_SIZE = 20;
@@ -96,30 +96,42 @@ export async function getOrderByCode(code: string): Promise<OrderDetail | null> 
 
 export type UpdateOrderResult =
   | { ok: true; order: OrderDetail }
-  | { ok: false; reason: "NOT_FOUND" | "INVALID_TRANSITION"; from?: OrderStatus };
+  | { ok: false; reason: "NOT_FOUND" | "INVALID_TRANSITION" | "NOT_EDITABLE"; from?: OrderStatus }
+  | { ok: false; reason: "UNKNOWN_PRODUCT" };
 
-export async function updateOrder(
-  code: string,
-  changes: { status?: OrderStatus; internalNote?: string },
-): Promise<UpdateOrderResult> {
+export async function updateOrder(code: string, changes: UpdateOrderData): Promise<UpdateOrderResult> {
   const number = parseOrderCode(code);
   if (number === null) return { ok: false, reason: "NOT_FOUND" };
 
   return db.$transaction(async (tx) => {
-    const current = await tx.order.findUnique({ where: { number }, select: { status: true } });
+    const current = await tx.order.findUnique({ where: { number }, include: detailInclude });
     if (!current) return { ok: false, reason: "NOT_FOUND" } as const;
+    const editing = changes.address !== undefined || changes.items !== undefined;
     if (changes.status !== undefined && !canTransition(current.status, changes.status)) {
       return { ok: false, reason: "INVALID_TRANSITION", from: current.status } as const;
     }
+    if (editing && !canEdit(current.status)) return { ok: false, reason: "NOT_EDITABLE", from: current.status } as const;
+
+    const repriced = changes.items ? repriceOrder(current.items, changes.items) : null;
+    if (repriced && !repriced.ok) return { ok: false, reason: "UNKNOWN_PRODUCT" } as const;
+
     // The status condition makes a concurrent change of the same order fail instead of skipping a rule.
     const updated = await tx.order.updateMany({
       where: { number, status: current.status },
       data: {
         ...(changes.status !== undefined ? { status: changes.status } : {}),
         ...(changes.internalNote !== undefined ? { internalNote: changes.internalNote || null } : {}),
+        ...(changes.address !== undefined ? { address: changes.address } : {}),
+        ...(repriced ? { total: repriced.total } : {}),
       },
     });
-    if (updated.count === 0) return { ok: false, reason: "INVALID_TRANSITION", from: current.status } as const;
+    if (updated.count === 0) {
+      return { ok: false, reason: editing ? "NOT_EDITABLE" : "INVALID_TRANSITION", from: current.status } as const;
+    }
+    if (repriced) {
+      await tx.orderItem.deleteMany({ where: { orderId: current.id } });
+      await tx.orderItem.createMany({ data: repriced.lines.map((line) => ({ ...line, orderId: current.id })) });
+    }
     const order = await tx.order.findUniqueOrThrow({ where: { number }, include: detailInclude });
     return { ok: true, order: toDetail(order) } as const;
   });

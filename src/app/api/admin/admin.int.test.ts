@@ -189,6 +189,98 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
     expect((await response.json()).status).toBe("CANCELLED");
   });
 
+  describe("editing address and items", () => {
+    const patch = (body: unknown, code = "BN-1001") =>
+      patchOrder(req(`/api/admin/orders/${code}`, { method: "PATCH", body }), ctx(code));
+    const lineOf = (order: { items: { productId: string }[] }, productId: string) =>
+      order.items.find((item) => item.productId === productId);
+
+    it("changes the address and items, keeps old prices, prices new items from the menu and recomputes the total", async () => {
+      await seedOrder(); // 1 x phan-thuong @ 35.000 (stored), menu price is the same today
+      await db.orderItem.updateMany({ where: { productId: "phan-thuong" }, data: { unitPrice: 30_000 } });
+      const response = await patch({
+        address: "  99 Nguyễn Huệ, Quận 1 ",
+        items: [
+          { productId: "phan-thuong", quantity: 2 },
+          { productId: "them-banh", quantity: 1 },
+        ],
+      });
+      expect(response.status).toBe(200);
+      const order = await response.json();
+      expect(order.address).toBe("99 Nguyễn Huệ, Quận 1");
+      expect(lineOf(order, "phan-thuong")).toMatchObject({ unitPrice: 30_000, quantity: 2 });
+      expect(lineOf(order, "them-banh")).toMatchObject({ name: "Thêm bánh", unitPrice: 10_000, quantity: 1 });
+      expect(order.total).toBe(70_000);
+      expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).total).toBe(70_000);
+      expect(await db.orderItem.count()).toBe(2);
+    });
+
+    it("removes lines set to 0 and edits a CONFIRMED order", async () => {
+      await seedOrder({ status: "CONFIRMED" });
+      const response = await patch({
+        items: [
+          { productId: "phan-thuong", quantity: 0 },
+          { productId: "them-long", quantity: 2 },
+        ],
+      });
+      const order = await response.json();
+      expect(response.status).toBe(200);
+      expect(order.items).toHaveLength(1);
+      expect(order.items[0]).toMatchObject({ productId: "them-long", quantity: 2 });
+      expect(order.total).toBe(30_000);
+    });
+
+    it("keeps a product that left the menu while it is in the order, but cannot add one", async () => {
+      await seedOrder();
+      await db.orderItem.updateMany({ data: { productId: "mon-cu", name: "Món cũ", unitPrice: 20_000 } });
+      const kept = await patch({ items: [{ productId: "mon-cu", quantity: 3 }] });
+      expect(kept.status).toBe(200);
+      expect((await kept.json()).total).toBe(60_000);
+      const added = await patch({ items: [{ productId: "mon-cu", quantity: 1 }, { productId: "pho-bo", quantity: 1 }] });
+      expect(added.status).toBe(400);
+      expect((await added.json()).error.fields.items).toBeDefined();
+      expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).total).toBe(60_000);
+    });
+
+    it("409 NOT_EDITABLE once the order is out for delivery, completed or cancelled", async () => {
+      for (const [index, status] of (["DELIVERING", "COMPLETED", "CANCELLED"] as const).entries()) {
+        await seedOrder({ status });
+        const code = `BN-${1001 + index}`;
+        const address = await patch({ address: "99 Nguyễn Huệ, Quận 1" }, code);
+        expect(address.status, status).toBe(409);
+        expect((await address.json()).error.code).toBe("NOT_EDITABLE");
+        expect((await patch({ items: [{ productId: "them-banh", quantity: 1 }] }, code)).status, status).toBe(409);
+      }
+      expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).address).toBe("1 Đường A");
+    });
+
+    it("400 for invalid edits and for a status change combined with an edit; the order stays untouched", async () => {
+      await seedOrder();
+      for (const body of [
+        { address: "abc" },
+        { items: [] },
+        { items: [{ productId: "phan-thuong", quantity: 0 }] },
+        { items: [{ productId: "phan-thuong", quantity: 21 }] },
+        { status: "CONFIRMED", address: "99 Nguyễn Huệ, Quận 1" },
+      ]) {
+        expect((await patch(body)).status, JSON.stringify(body)).toBe(400);
+      }
+      const order = await db.order.findUniqueOrThrow({ where: { number: 1001 }, include: { items: true } });
+      expect(order).toMatchObject({ address: "1 Đường A", total: 35_000, status: "NEW" });
+      expect(order.items).toHaveLength(1);
+    });
+
+    it("404 for an unknown order and 401 without a session", async () => {
+      expect((await patch({ address: "99 Nguyễn Huệ, Quận 1" }, "BN-4040")).status).toBe(404);
+      await seedOrder();
+      const noAuth = await patchOrder(
+        req("/api/admin/orders/BN-1001", { method: "PATCH", body: { address: "99 Nguyễn Huệ, Quận 1" }, auth: false }),
+        ctx("BN-1001"),
+      );
+      expect(noAuth.status).toBe(401);
+    });
+  });
+
   it("400 for an empty or invalid body, 404 for unknown code, 401 without session", async () => {
     await seedOrder();
     expect((await patchOrder(req("/api/admin/orders/BN-1001", { method: "PATCH", body: {} }), ctx("BN-1001"))).status).toBe(400);

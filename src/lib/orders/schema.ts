@@ -18,6 +18,16 @@ export const orderItemSchema = z.object({
     .max(MAX_QUANTITY, `Mỗi món tối đa ${MAX_QUANTITY} phần`),
 });
 
+const addressSchema = z
+  .string({ error: "Vui lòng nhập địa chỉ" })
+  .trim()
+  .min(5, "Vui lòng nhập địa chỉ giao hàng")
+  .max(300, "Địa chỉ tối đa 300 ký tự");
+
+const hasItemsToOrder = (items: { quantity: number }[]) => items.some((item) => item.quantity > 0);
+const hasUniqueProducts = (items: { productId: string }[]) =>
+  new Set(items.map((item) => item.productId)).size === items.length;
+
 export const createOrderSchema = z.object({
   customerName: z
     .string({ error: "Vui lòng nhập họ tên" })
@@ -28,11 +38,7 @@ export const createOrderSchema = z.object({
     .string({ error: "Vui lòng nhập số điện thoại" })
     .transform(normalizePhone)
     .pipe(z.string().regex(/^0\d{9}$/, "Số điện thoại gồm 10 số, bắt đầu bằng 0")),
-  address: z
-    .string({ error: "Vui lòng nhập địa chỉ" })
-    .trim()
-    .min(5, "Vui lòng nhập địa chỉ giao hàng")
-    .max(300, "Địa chỉ tối đa 300 ký tự"),
+  address: addressSchema,
   deliverySlot: z.iso.datetime({ offset: true, error: "Vui lòng chọn giờ nhận" }),
   note: z
     .string()
@@ -43,11 +49,8 @@ export const createOrderSchema = z.object({
   items: z
     .array(orderItemSchema, { error: "Chọn ít nhất 1 món" })
     .max(productIds.length)
-    .refine((items) => items.some((item) => item.quantity > 0), "Chọn ít nhất 1 món")
-    .refine(
-      (items) => new Set(items.map((item) => item.productId)).size === items.length,
-      "Mỗi món chỉ chọn một lần",
-    ),
+    .refine(hasItemsToOrder, "Chọn ít nhất 1 món")
+    .refine(hasUniqueProducts, "Mỗi món chỉ chọn một lần"),
   /** Honeypot: hidden from people, bots fill it in. */
   website: z.string().max(0, "Yêu cầu không hợp lệ").optional(),
 });
@@ -72,12 +75,33 @@ export const listOrdersQuerySchema = z.object({
   page: z.coerce.number({ error: "Trang không hợp lệ" }).int("Trang không hợp lệ").min(1, "Trang không hợp lệ").default(1),
 });
 
+/** An edited line may use a product that is no longer on the menu but is already in the order, so the id is checked in the service. */
+const editItemSchema = z.object({
+  productId: z.string({ error: "Món không hợp lệ" }).min(1, "Món không hợp lệ").max(64, "Món không hợp lệ"),
+  quantity: orderItemSchema.shape.quantity,
+});
+
 export const updateOrderSchema = z
   .object({
     status: orderStatusSchema.optional(),
     internalNote: z.string().trim().max(1000, "Ghi chú tối đa 1000 ký tự").optional(),
+    address: addressSchema.optional(),
+    items: z
+      .array(editItemSchema, { error: "Chọn ít nhất 1 món" })
+      .max(20, "Quá nhiều món")
+      .refine(hasItemsToOrder, "Chọn ít nhất 1 món")
+      .refine(hasUniqueProducts, "Mỗi món chỉ chọn một lần")
+      .optional(),
   })
-  .refine((body) => body.status !== undefined || body.internalNote !== undefined, "Cần ít nhất 1 trường để cập nhật");
+  .refine(
+    (body) =>
+      body.status !== undefined || body.internalNote !== undefined || body.address !== undefined || body.items !== undefined,
+    "Cần ít nhất 1 trường để cập nhật",
+  )
+  .refine(
+    (body) => body.status === undefined || (body.address === undefined && body.items === undefined),
+    { message: "Không đổi trạng thái cùng lúc với địa chỉ hoặc món", path: ["status"] },
+  );
 
 /** First error message per top-level field, for the `fields` part of a VALIDATION error. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
@@ -88,3 +112,4 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return fields;
 }
+export type UpdateOrderData = z.output<typeof updateOrderSchema>;

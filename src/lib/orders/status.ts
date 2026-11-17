@@ -36,6 +36,11 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
   return NEXT[from] === to;
 }
 
+/** The shop can still fix the address and items until the order is out for delivery. */
+export function canEdit(from: OrderStatus): boolean {
+  return from === "NEW" || from === "CONFIRMED";
+}
+
 export function isOrderStatus(value: string): value is OrderStatus {
   return (ORDER_STATUSES as readonly string[]).includes(value);
 }

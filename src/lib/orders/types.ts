@@ -48,6 +48,7 @@ export type ApiErrorCode =
   | "UNAUTHORIZED"
   | "NOT_FOUND"
   | "INVALID_TRANSITION"
+  | "NOT_EDITABLE"
   | "INTERNAL";
 
 export type ApiErrorBody = {
