@@ -1,12 +1,13 @@
 import { findMenuItem } from "@/config/menu";
 import { shop } from "@/config/shop";
 import { db } from "@/lib/db";
+import type { OrderStatus } from "@/lib/orders/types";
 import { bucketKey, bucketStarts, previousWindow, RANGE_BUCKET, reportWindow, type ReportWindow } from "./range";
 import type { ReportItem, ReportRange, ReportResponse, ReportSummary } from "./types";
 
-const PENDING_STATUSES = new Set(["NEW", "CONFIRMED", "DELIVERING"]);
+const PENDING_STATUSES: ReadonlySet<OrderStatus> = new Set(["NEW", "CONFIRMED", "DELIVERING"]);
 
-type StatusTotals = Map<string, { orders: number; total: number }>;
+type StatusTotals = Map<OrderStatus, { orders: number; total: number }>;
 
 async function statusTotals({ from, to }: ReportWindow): Promise<StatusTotals> {
   const rows = await db.order.groupBy({

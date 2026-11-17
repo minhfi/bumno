@@ -32,7 +32,7 @@ function axisLabel(bucket: ReportBucket, start: string, index: number, count: nu
   if (bucket === "hour") return index % 2 === 0 ? `${hourOf(at)}h` : null;
   if (bucket === "month") {
     const [year, month, day] = shopDateString(new Date(at)).split("-");
-    if (index === 0 && day !== "01") return `từ ${dayMonth(at)}`;
+    if (index === 0 && day !== "01") return `từ ${dayMonth(at, true)}`;
     return `${month}/${year.slice(2)}`;
   }
   if (count <= 7) return dayMonth(at);

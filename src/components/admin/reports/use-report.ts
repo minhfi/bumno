@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
 import type { ReportRange, ReportResponse } from "@/lib/reports/types";
-
-export const REPORT_POLL_INTERVAL_MS = 30_000;
+import { POLL_INTERVAL_MS } from "../use-orders";
 
 type State = { data: ReportResponse | null; error: ApiError | null; loading: boolean };
 
@@ -54,7 +53,7 @@ export function useReport(range: ReportRange, onUnauthorized: () => void) {
     const refresh = () => {
       if (document.visibilityState === "visible") void load({ background: true });
     };
-    const timer = window.setInterval(refresh, REPORT_POLL_INTERVAL_MS);
+    const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
     document.addEventListener("visibilitychange", refresh);
     return () => {
       window.clearInterval(timer);
