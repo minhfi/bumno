@@ -148,7 +148,7 @@ export function OrderForm() {
         Đặt hàng
       </h2>
       <p className="mt-3 max-w-[60ch] text-ink/80">
-        Không cần tài khoản. Trả tiền mặt khi nhận hàng. {shop.deliveryArea}
+        Không cần tài khoản. Trả tiền mặt khi nhận hàng hoặc chuyển khoản trước. {shop.deliveryArea}
       </p>
 
       <div className="mt-8">
@@ -337,7 +337,7 @@ export function OrderForm() {
                   {formatVnd(total)}
                 </span>
               </p>
-              <p className="text-sm text-ink/70">Trả tiền mặt khi nhận hàng.</p>
+              <p className="text-sm text-ink/70">Trả tiền mặt khi nhận hàng hoặc chuyển khoản trước.</p>
               {formError ? (
                 <p role="alert" className="mt-4 rounded-xl bg-chili/10 px-4 py-3 text-[15px] font-medium text-chili">
                   {formError}

@@ -49,7 +49,7 @@ describe("POST /api/orders", () => {
       deliverySlot: "2026-11-09T01:00:00.000Z",
       items: [
         { name: "Phần thường", unitPrice: 35_000, quantity: 2 },
-        { name: "Thêm lòng", unitPrice: 15_000, quantity: 1 },
+        { name: "Thêm lòng và gà", unitPrice: 15_000, quantity: 1 },
       ],
     });
     const saved = await db.order.findUniqueOrThrow({ where: { number: 1001 }, include: { items: true } });

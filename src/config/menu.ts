@@ -22,7 +22,7 @@ export const menu = [
   },
   {
     id: "them-long",
-    name: "Thêm lòng",
+    name: "Thêm lòng và gà",
     description: "Một phần lòng gà luộc thêm.",
     price: 15_000,
   },

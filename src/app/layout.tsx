@@ -17,7 +17,7 @@ const body = Be_Vietnam_Pro({
 
 export const metadata: Metadata = {
   title: `${shop.name} — Bánh ướt lòng gà giao tận nơi`,
-  description: "Bánh ướt lòng gà nóng mỗi sáng. Đặt đơn nhanh, trả tiền khi nhận hàng.",
+  description: "Bánh ướt lòng gà nóng mỗi sáng. Đặt đơn nhanh, trả tiền khi nhận hàng hoặc chuyển khoản trước.",
 };
 
 export const viewport: Viewport = {

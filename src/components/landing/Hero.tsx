@@ -1,8 +1,7 @@
-import { formatMinuteOfDay, shop } from "@/config/shop";
+import { shop } from "@/config/shop";
 import { Plate } from "./Plate";
 
 export function Hero() {
-  const hours = `${formatMinuteOfDay(shop.openMinute)}–${formatMinuteOfDay(shop.closeMinute)}`;
   return (
     <header className="mx-auto max-w-[1120px] px-5 pt-4 sm:px-8">
       <div className="flex items-center justify-between gap-4">
@@ -36,7 +35,7 @@ export function Hero() {
             Bánh tráng mỏng hấp nóng, lòng gà luộc vừa tới, chan nước mắm chua ngọt. Giao tận nơi mỗi sáng.
           </p>
           <p className="mt-3 text-[15px] font-medium text-ink/70">
-            Nhận đơn {hours} mỗi sáng · Trả tiền khi nhận hàng
+            Ăn sáng nóng hổi, giao tới cửa · Chuyển khoản trước hoặc trả tiền khi nhận hàng
           </p>
           <a
             href="#dat-hang"

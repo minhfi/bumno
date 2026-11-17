@@ -10,7 +10,7 @@ test.describe("order flow", () => {
     await page.getByRole("link", { name: "Đặt ngay" }).first().click();
     await page.getByRole("button", { name: "Thêm 1 Phần thường" }).click();
     await page.getByRole("button", { name: "Thêm 1 Phần thường" }).click();
-    await page.getByRole("button", { name: "Thêm 1 Thêm lòng" }).click();
+    await page.getByRole("button", { name: "Thêm 1 Thêm lòng và gà" }).click();
     await expect(page.getByLabel("Tóm tắt đơn")).toContainText("85.000đ");
 
     await page.getByLabel("Họ tên").fill("Nguyễn Lan");
