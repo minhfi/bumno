@@ -1,4 +1,4 @@
-import { formatMinuteOfDay, shop } from "@/config/shop";
+import { shop } from "@/config/shop";
 
 export function ShopInfo() {
   return (
@@ -13,9 +13,9 @@ export function ShopInfo() {
             <dd className="mt-1">{shop.address}</dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-on-rim/80">Giờ nhận đơn</dt>
+            <dt className="text-sm font-semibold text-on-rim/80">Giờ giao hàng</dt>
             <dd className="mt-1">
-              {formatMinuteOfDay(shop.openMinute)}–{formatMinuteOfDay(shop.closeMinute)} mỗi sáng
+              {shop.deliveryStartMinute / 60}:00–{shop.deliveryEndMinute / 60}:00 mỗi ngày. Đặt lúc nào cũng được.
             </dd>
           </div>
           <div>

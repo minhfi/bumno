@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   availableSlots,
   formatSlot,
-  isAcceptingOrders,
   isSlotAvailable,
   shopDateString,
   shopDayRange,
@@ -12,25 +11,23 @@ import {
 const vn = (local: string) => new Date(`${local}:00+07:00`);
 
 describe("availableSlots", () => {
-  it("is empty before opening and after closing", () => {
-    expect(availableSlots(vn("2026-11-09T05:59"))).toEqual([]);
-    expect(availableSlots(vn("2026-11-09T11:00"))).toEqual([]);
-    expect(availableSlots(vn("2026-11-09T23:30"))).toEqual([]);
-    expect(isAcceptingOrders(vn("2026-11-09T05:30"))).toBe(false);
-  });
-
-  it("offers 30-minute slots at least 30 minutes ahead, up to closing", () => {
+  it("offers half-hour slots from 6:00 to 19:30, at least 30 minutes ahead", () => {
     const slots = availableSlots(vn("2026-11-09T06:00")).map(formatSlot);
-    expect(slots).toEqual(["6:30", "7:00", "7:30", "8:00", "8:30", "9:00", "9:30", "10:00", "10:30", "11:00"]);
+    expect(slots.slice(0, 3)).toEqual(["6:30", "7:00", "7:30"]);
+    expect(slots).toContain("19:30");
+    expect(slots).not.toContain("20:00");
+    expect(slots).not.toContain("5:30");
+    expect(slots.at(-1)).toBe("19:30"); // tomorrow evening
+    expect(slots.filter((s) => s === "6:00")).toHaveLength(1); // tomorrow morning only
     expect(availableSlots(vn("2026-11-09T07:01")).map(formatSlot)[0]).toBe("8:00");
     expect(availableSlots(vn("2026-11-09T07:00")).map(formatSlot)[0]).toBe("7:30");
   });
 
-  it("stops accepting orders when no slot is left near closing", () => {
-    expect(availableSlots(vn("2026-11-09T10:30")).map(formatSlot)).toEqual(["11:00"]);
-    expect(isAcceptingOrders(vn("2026-11-09T10:30"))).toBe(true);
-    expect(availableSlots(vn("2026-11-09T10:31"))).toEqual([]);
-    expect(isAcceptingOrders(vn("2026-11-09T10:45"))).toBe(false);
+  it("skips the night: orders placed late roll over to 6:00 the next morning", () => {
+    const slots = availableSlots(vn("2026-11-09T23:45"));
+    expect(slots.map(formatSlot).slice(0, 2)).toEqual(["6:00", "6:30"]);
+    expect(slots[0].toISOString()).toBe("2026-11-09T23:00:00.000Z");
+    expect(availableSlots(vn("2026-11-09T19:45"))[0].toISOString()).toBe("2026-11-09T23:00:00.000Z");
   });
 
   it("checks a requested slot", () => {
@@ -38,8 +35,11 @@ describe("availableSlots", () => {
     expect(isSlotAvailable(vn("2026-11-09T08:00"), at)).toBe(true);
     expect(isSlotAvailable(vn("2026-11-09T07:30"), at)).toBe(false); // < 30 minutes ahead
     expect(isSlotAvailable(vn("2026-11-09T08:15"), at)).toBe(false); // not on the grid
-    expect(isSlotAvailable(vn("2026-11-10T08:00"), at)).toBe(false); // another day
-    expect(isSlotAvailable(vn("2026-11-09T11:30"), at)).toBe(false); // after closing
+    expect(isSlotAvailable(vn("2026-11-10T19:30"), at)).toBe(true); // tomorrow, last slot
+    expect(isSlotAvailable(vn("2026-11-11T08:00"), at)).toBe(false); // the day after tomorrow
+    expect(isSlotAvailable(vn("2026-11-09T20:00"), at)).toBe(false); // night, no delivery
+    expect(isSlotAvailable(vn("2026-11-10T05:30"), at)).toBe(false); // night, no delivery
+    expect(isSlotAvailable(vn("2026-11-10T06:00"), at)).toBe(true); // tomorrow morning
   });
 });
 

@@ -67,7 +67,7 @@ body {
   outline-offset: 2px;
 }
 
-/* The only motion on the landing page: the hero settles in on load. */
+/* Motion on the landing page: the hero settles in on load, and anchor links scroll smoothly. */
 @keyframes hero-in {
   from {
     opacity: 0;
@@ -76,6 +76,10 @@ body {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
   .hero-in {
     animation: hero-in 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }

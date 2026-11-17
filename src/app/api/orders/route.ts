@@ -3,7 +3,7 @@ import { now } from "@/lib/clock";
 import { errorResponse, getClientIp, invalidJson, readJson, withErrorHandling } from "@/lib/http";
 import { createOrderSchema, fieldErrors } from "@/lib/orders/schema";
 import { createOrder } from "@/lib/orders/service";
-import { isAcceptingOrders, isSlotAvailable } from "@/lib/orders/slots";
+import { isSlotAvailable } from "@/lib/orders/slots";
 import type { CreateOrderResponse } from "@/lib/orders/types";
 import { orderAttemptRateLimiter, orderRateLimiter } from "@/lib/rate-limit";
 
@@ -24,9 +24,6 @@ export const POST = withErrorHandling("POST /api/orders", async (request: NextRe
   }
 
   const at = now();
-  if (!isAcceptingOrders(at)) {
-    return errorResponse(409, "SHOP_CLOSED", "Quán đã đóng đơn hôm nay. Vui lòng quay lại vào giờ mở cửa.");
-  }
   if (!isSlotAvailable(new Date(parsed.data.deliverySlot), at)) {
     return errorResponse(409, "SLOT_UNAVAILABLE", "Khung giờ này không còn nhận đơn. Vui lòng chọn giờ khác.", {
       deliverySlot: "Khung giờ này không còn nhận đơn",

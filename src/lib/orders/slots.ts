@@ -3,7 +3,7 @@ import { shop } from "@/config/shop";
 const MINUTE_MS = 60_000;
 const offsetMs = shop.utcOffsetMinutes * MINUTE_MS;
 
-type ShopHours = Pick<typeof shop, "openMinute" | "closeMinute" | "slotStepMinutes" | "minLeadMinutes">;
+type ShopHours = Pick<typeof shop, "deliveryStartMinute" | "deliveryEndMinute" | "slotStepMinutes" | "minLeadMinutes">;
 
 /** Midnight (shop time zone) of the day containing `at`, as a UTC timestamp. */
 function shopMidnight(at: Date): number {
@@ -30,30 +30,23 @@ export function shopDayRange(date: string): { start: Date; end: Date } | null {
   return { start: new Date(start), end: new Date(start + 86_400_000) };
 }
 
-export function isWithinOpeningHours(at: Date, hours: ShopHours = shop): boolean {
-  const minute = shopMinuteOfDay(at);
-  return minute >= hours.openMinute && minute < hours.closeMinute;
-}
-
 /**
- * Delivery slots still bookable today: every `slotStepMinutes` from opening to closing (inclusive),
- * at least `minLeadMinutes` after `at`. Empty outside opening hours.
+ * Delivery slots bookable right now: every `slotStepMinutes` from the first grid point at least
+ * `minLeadMinutes` after `at` until the end of tomorrow's delivery window, skipping the night (before `deliveryStartMinute`
+ * or from `deliveryEndMinute`). The shop takes orders at any time; only delivery is limited to the day.
  */
 export function availableSlots(at: Date, hours: ShopHours = shop): Date[] {
-  if (!isWithinOpeningHours(at, hours)) return [];
   const midnight = shopMidnight(at);
+  const stepMs = hours.slotStepMinutes * MINUTE_MS;
   const earliest = at.getTime() + hours.minLeadMinutes * MINUTE_MS;
+  const first = midnight + Math.ceil((earliest - midnight) / stepMs) * stepMs;
+  const last = midnight + (24 * 60 + hours.deliveryEndMinute) * MINUTE_MS; // tomorrow, delivery window end (exclusive)
   const slots: Date[] = [];
-  for (let minute = hours.openMinute; minute <= hours.closeMinute; minute += hours.slotStepMinutes) {
-    const slot = midnight + minute * MINUTE_MS;
-    if (slot >= earliest) slots.push(new Date(slot));
+  for (let t = first; t < last; t += stepMs) {
+    const minute = shopMinuteOfDay(new Date(t));
+    if (minute >= hours.deliveryStartMinute && minute < hours.deliveryEndMinute) slots.push(new Date(t));
   }
   return slots;
-}
-
-/** The shop takes orders while it is open and at least one slot is left. */
-export function isAcceptingOrders(at: Date, hours: ShopHours = shop): boolean {
-  return availableSlots(at, hours).length > 0;
 }
 
 export function isSlotAvailable(slot: Date, at: Date, hours: ShopHours = shop): boolean {

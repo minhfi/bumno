@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { formatVnd, menu, type ProductId } from "@/config/menu";
-import { formatMinuteOfDay, shop } from "@/config/shop";
 import { ApiError, apiRequest } from "@/lib/api-client";
 import { createOrderSchema, fieldErrors, MAX_QUANTITY, type CreateOrderInput } from "@/lib/orders/schema";
-import { availableSlots, formatSlot, shopMinuteOfDay } from "@/lib/orders/slots";
+import { availableSlots, formatSlot, shopDateString } from "@/lib/orders/slots";
 import type { CreateOrderResponse } from "@/lib/orders/types";
 import { OrderSuccess } from "./OrderSuccess";
 import { StickyOrderBar } from "./StickyOrderBar";
@@ -46,11 +45,12 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return visible;
 }
 
-function closedMessage(): string {
-  const opensAt = formatMinuteOfDay(shop.openMinute);
-  return shopMinuteOfDay(new Date()) < shop.openMinute
-    ? `Quán chưa mở nhận đơn, mở lúc ${opensAt}.`
-    : `Quán đã đóng đơn hôm nay, mở lại lúc ${opensAt}.`;
+/** `8:00`, or `8:00 · ngày 18/11` when the slot is not today. */
+function slotLabel(slot: Date): string {
+  const date = shopDateString(slot);
+  if (date === shopDateString(new Date())) return formatSlot(slot);
+  const [, month, day] = date.split("-");
+  return `${formatSlot(slot)} · ngày ${day}/${month}`;
 }
 
 export function OrderForm() {
@@ -65,13 +65,14 @@ export function OrderForm() {
   const formOnScreen = useOnScreen(sectionRef);
 
   const total = menu.reduce((sum, item) => sum + item.price * quantities[item.id], 0);
-  const closed = slots !== null && slots.length === 0;
   // Fields stay enabled while submitting so focus is not lost; handleSubmit ignores repeat submits.
-  const disabled = slots === null || closed;
+  const disabled = slots === null;
 
-  // A chosen slot that is no longer bookable counts as not chosen.
-  const deliverySlot = slots?.some((slot) => slot.toISOString() === fields.deliverySlot) ? fields.deliverySlot : "";
-  const slotExpired = slots !== null && fields.deliverySlot !== "" && deliverySlot === "";
+  // A chosen slot that is no longer bookable falls back to the earliest one.
+  const deliverySlot = slots?.some((slot) => slot.toISOString() === fields.deliverySlot)
+    ? fields.deliverySlot
+    : (slots?.[0]?.toISOString() ?? "");
+  const slotExpired = slots !== null && fields.deliverySlot !== "" && deliverySlot !== fields.deliverySlot;
 
   useEffect(() => {
     if (result) document.getElementById("order-success-title")?.focus();
@@ -148,7 +149,7 @@ export function OrderForm() {
         Đặt hàng
       </h2>
       <p className="mt-3 max-w-[60ch] text-ink/80">
-        Không cần tài khoản. Trả tiền mặt khi nhận hàng hoặc chuyển khoản trước. {shop.deliveryArea}
+        Chọn món, điền thông tin, quán sẽ gọi xác nhận đơn và báo phí ship sau khi có địa chỉ.
       </p>
 
       <div className="mt-8">
@@ -157,12 +158,6 @@ export function OrderForm() {
         ) : (
           <form noValidate onSubmit={handleSubmit} className="grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-start md:gap-12">
             <div className="space-y-8">
-              {closed ? (
-                <p id="order-closed" role="status" className="rounded-2xl border-2 border-chili/40 bg-chili/5 px-5 py-4 font-semibold text-chili">
-                  {closedMessage()}
-                </p>
-              ) : null}
-
               <fieldset disabled={disabled} className="space-y-8">
                 <fieldset aria-describedby={errorId("items")}>
                   <legend id="items-legend" tabIndex={-1} className="font-display text-[28px] font-bold leading-tight">
@@ -255,7 +250,7 @@ export function OrderForm() {
                 </div>
 
                 <div>
-                  <label htmlFor="order-deliverySlot" className="font-semibold">Giờ nhận hôm nay</label>
+                  <label htmlFor="order-deliverySlot" className="font-semibold">Giờ nhận</label>
                   <select
                     id="order-deliverySlot"
                     name="deliverySlot"
@@ -265,17 +260,17 @@ export function OrderForm() {
                     aria-describedby={errorId("deliverySlot")}
                     className={inputClass}
                   >
-                    <option value="">{slots === null ? "Đang tải khung giờ…" : "Chọn giờ nhận"}</option>
+                    {slots === null ? <option value="">Đang tải khung giờ…</option> : null}
                     {slots?.map((slot) => (
                       <option key={slot.toISOString()} value={slot.toISOString()}>
-                        {formatSlot(slot)}
+                        {slotLabel(slot)}{slot === slots[0] ? " · sớm nhất" : ""}
                       </option>
                     ))}
                   </select>
                   {fieldError("deliverySlot")}
                   {slotExpired && !errors.deliverySlot ? (
                     <p role="status" className="mt-1.5 text-sm font-medium text-ink/80">
-                      Khung giờ bạn chọn đã qua, vui lòng chọn lại.
+                      Khung giờ bạn chọn đã qua, đã chuyển sang giờ sớm nhất.
                     </p>
                   ) : null}
                 </div>
@@ -343,16 +338,10 @@ export function OrderForm() {
                   {formError}
                 </p>
               ) : null}
-              {closed ? (
-                <p id="order-closed-short" className="mt-4 text-[15px] font-semibold text-chili">
-                  Quán đang đóng đơn.
-                </p>
-              ) : null}
               <button
                 type="submit"
                 disabled={disabled}
                 aria-disabled={submitting || undefined}
-                aria-describedby={closed ? "order-closed" : undefined}
                 className="mt-5 min-h-13 w-full rounded-full bg-rim text-lg font-semibold text-on-rim hover:bg-rim/90 active:bg-rim/85 disabled:bg-ink/25 aria-disabled:bg-rim/70"
               >
                 {submitting ? "Đang gửi…" : "Đặt đơn"}

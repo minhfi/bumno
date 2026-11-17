@@ -42,7 +42,6 @@ export type CreateOrderResponse = {
 
 export type ApiErrorCode =
   | "VALIDATION"
-  | "SHOP_CLOSED"
   | "SLOT_UNAVAILABLE"
   | "RATE_LIMITED"
   | "INVALID_PASSWORD"

@@ -76,15 +76,8 @@ describe("POST /api/orders", () => {
     expect(await db.order.count()).toBe(0);
   });
 
-  it("409 SHOP_CLOSED outside opening hours", async () => {
-    vi.stubEnv("BUMNO_FAKE_NOW", "2026-11-09T13:00:00+07:00");
-    const response = await post({ ...validOrder, deliverySlot: "2026-11-09T14:00:00+07:00" });
-    expect(response.status).toBe(409);
-    expect((await response.json()).error.code).toBe("SHOP_CLOSED");
-  });
-
   it("409 SLOT_UNAVAILABLE for a past or too-soon slot", async () => {
-    for (const deliverySlot of ["2026-11-09T07:00:00+07:00", "2026-11-09T07:30:00+07:00", "2026-11-10T08:00:00+07:00"]) {
+    for (const deliverySlot of ["2026-11-09T07:00:00+07:00", "2026-11-09T07:30:00+07:00", "2026-11-11T08:00:00+07:00"]) {
       const response = await post({ ...validOrder, deliverySlot });
       expect(response.status, deliverySlot).toBe(409);
       expect((await response.json()).error).toMatchObject({ code: "SLOT_UNAVAILABLE", fields: { deliverySlot: expect.any(String) } });

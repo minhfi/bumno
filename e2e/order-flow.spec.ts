@@ -16,7 +16,7 @@ test.describe("order flow", () => {
     await page.getByLabel("Họ tên").fill("Nguyễn Lan");
     await page.getByLabel("Số điện thoại").fill("0901 234 567");
     await page.getByLabel("Địa chỉ giao").fill("12 Lê Lợi, Quận 1");
-    await page.getByLabel("Giờ nhận hôm nay").selectOption({ label: "8:00" });
+    await page.getByLabel("Giờ nhận").selectOption({ label: "8:00" });
     await page.getByLabel(/Ghi chú/).fill("Ít hành");
     await page.getByRole("button", { name: "Đặt đơn", exact: true }).click();
 
@@ -59,16 +59,14 @@ test.describe("order flow", () => {
     await page.getByRole("button", { name: "Đặt đơn", exact: true }).click();
     await expect(page.getByText("Chọn ít nhất 1 món").last()).toBeVisible();
     await expect(page.getByText("Số điện thoại gồm 10 số, bắt đầu bằng 0")).toBeVisible();
-    await expect(page.getByText("Vui lòng chọn giờ nhận")).toBeVisible();
     await expect(page.getByLabel("Số điện thoại")).toHaveValue("12345");
   });
 
-  test("the form is locked outside opening hours", async ({ page }) => {
+  test("the form stays open late at night", async ({ page }) => {
     await page.clock.setFixedTime(vnTime("13:00"));
     await page.goto("/#dat-hang");
-    await expect(page.getByText("Quán đã đóng đơn hôm nay, mở lại lúc 6:00.")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Đặt đơn", exact: true })).toBeDisabled();
-    await expect(page.getByLabel("Họ tên")).toBeDisabled();
+    await expect(page.getByLabel("Họ tên")).toBeEnabled();
+    await expect(page.getByRole("button", { name: "Đặt đơn", exact: true })).toBeEnabled();
   });
 
   test("a new order shows up in the admin list within 30 s without reloading", async ({ page, request }, testInfo) => {
@@ -94,9 +92,10 @@ test.describe("admin access", () => {
 
   test("a wrong password is rejected", async ({ page }) => {
     await page.goto("/admin");
+    await page.getByLabel("Tên đăng nhập").fill("admin");
     await page.getByLabel("Mật khẩu").fill("sai-mat-khau");
     await page.getByRole("button", { name: "Đăng nhập" }).click();
-    await expect(page.getByText("Mật khẩu không đúng")).toBeVisible();
+    await expect(page.getByText("Tên đăng nhập hoặc mật khẩu không đúng")).toBeVisible();
     await expect(page).toHaveURL(/\/admin$/);
   });
 });

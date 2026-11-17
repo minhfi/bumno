@@ -56,6 +56,7 @@ export type CreateOrderInput = z.input<typeof createOrderSchema>;
 export type CreateOrderData = z.output<typeof createOrderSchema>;
 
 export const loginSchema = z.object({
+  username: z.string({ error: "Vui lòng nhập tên đăng nhập" }).trim().min(1, "Vui lòng nhập tên đăng nhập").max(100),
   password: z.string({ error: "Vui lòng nhập mật khẩu" }).min(1, "Vui lòng nhập mật khẩu").max(200),
 });
 

@@ -27,7 +27,7 @@ async function main() {
       { productId: product.id, name: product.name, unitPrice: product.price, quantity: 1 + (index % 3) },
       ...(index % 3 === 0 ? [{ productId: extra.id, name: extra.name, unitPrice: extra.price, quantity: 1 }] : []),
     ];
-    const createdMinute = shop.openMinute + index * 10;
+    const createdMinute = 6 * 60 + index * 10;
     await db.order.create({
       data: {
         customerName: `Chị ${name}`,
