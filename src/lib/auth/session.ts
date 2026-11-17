@@ -39,12 +39,15 @@ export function verifySessionToken(
   return Number(expiresRaw) > nowMs;
 }
 
-/** Constant-time comparison against ADMIN_PASSWORD. */
-export function checkAdminPassword(password: string): boolean {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected) throw new Error("ADMIN_PASSWORD must be set");
+/** Constant-time comparison against ADMIN_USERNAME and ADMIN_PASSWORD (both are always compared). */
+export function checkAdminCredentials(username: string, password: string): boolean {
+  const expectedUsername = process.env.ADMIN_USERNAME;
+  const expectedPassword = process.env.ADMIN_PASSWORD;
+  if (!expectedUsername || !expectedPassword) throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be set");
   const digest = (value: string) => createHash("sha256").update(value).digest();
-  return timingSafeEqual(digest(password), digest(expected));
+  const usernameOk = timingSafeEqual(digest(username), digest(expectedUsername));
+  const passwordOk = timingSafeEqual(digest(password), digest(expectedPassword));
+  return usernameOk && passwordOk;
 }
 
 export const sessionCookieOptions = {

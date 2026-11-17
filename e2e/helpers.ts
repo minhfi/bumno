@@ -1,5 +1,5 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
-import { ADMIN_PASSWORD, FAKE_NOW } from "../playwright.config";
+import { ADMIN_PASSWORD, ADMIN_USERNAME, FAKE_NOW } from "../playwright.config";
 
 export { FAKE_NOW };
 
@@ -10,6 +10,7 @@ export function vnTime(hhmm: string): Date {
 
 export async function login(page: Page) {
   await page.goto("/admin");
+  await page.getByLabel("Tên đăng nhập").fill(ADMIN_USERNAME);
   await page.getByLabel("Mật khẩu").fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await expect(page).toHaveURL(/\/admin\/orders$/);

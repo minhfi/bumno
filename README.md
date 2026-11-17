@@ -26,7 +26,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Sửa `.env`: `DATABASE_URL`, `DATABASE_URL_TEST` (user Postgres của bạn), `ADMIN_PASSWORD`, `SESSION_SECRET` (≥ 32 ký tự, ví dụ `openssl rand -hex 24`).
+Sửa `.env`: `DATABASE_URL`, `DATABASE_URL_TEST` (user Postgres của bạn), `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `SESSION_SECRET` (≥ 32 ký tự, ví dụ `openssl rand -hex 24`).
 
 ```bash
 pnpm db:migrate
@@ -45,7 +45,7 @@ pnpm dev
 ```
 
 - LDP: http://localhost:3000
-- Admin: http://localhost:3000/admin (mật khẩu = `ADMIN_PASSWORD`)
+- Admin: http://localhost:3000/admin (tài khoản = `ADMIN_USERNAME` / `ADMIN_PASSWORD`)
 
 Production build: `pnpm build && pnpm start`.
 

@@ -50,7 +50,7 @@ afterAll(async () => {
 
 describe("POST /api/admin/login", () => {
   it("204 + HttpOnly session cookie for the right password", async () => {
-    const response = await login(req("/api/admin/login", { method: "POST", body: { password: "test-admin-password" }, auth: false }));
+    const response = await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "test-admin-password" }, auth: false }));
     expect(response.status).toBe(204);
     const cookie = response.headers.get("set-cookie") ?? "";
     expect(cookie).toContain(`${SESSION_COOKIE}=`);
@@ -59,26 +59,28 @@ describe("POST /api/admin/login", () => {
     expect(cookie).toMatch(/Max-Age=604800/);
   });
 
-  it("400 without a password, 401 for a wrong one", async () => {
+  it("400 without credentials, 401 for a wrong password or username", async () => {
     expect((await login(req("/api/admin/login", { method: "POST", body: {}, auth: false }))).status).toBe(400);
-    const response = await login(req("/api/admin/login", { method: "POST", body: { password: "sai" }, auth: false }));
+    const response = await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "sai" }, auth: false }));
     expect(response.status).toBe(401);
     expect((await response.json()).error.code).toBe("INVALID_PASSWORD");
+    const wrongUser = await login(req("/api/admin/login", { method: "POST", body: { username: "khac", password: "test-admin-password" }, auth: false }));
+    expect(wrongUser.status).toBe(401);
   });
 
   it("429 after 5 wrong passwords from one IP", async () => {
     for (let i = 0; i < 5; i++) {
-      expect((await login(req("/api/admin/login", { method: "POST", body: { password: "sai" }, auth: false, ip: "10.1.0.7" }))).status).toBe(401);
+      expect((await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "sai" }, auth: false, ip: "10.1.0.7" }))).status).toBe(401);
     }
-    const blocked = await login(req("/api/admin/login", { method: "POST", body: { password: "test-admin-password" }, auth: false, ip: "10.1.0.7" }));
+    const blocked = await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "test-admin-password" }, auth: false, ip: "10.1.0.7" }));
     expect(blocked.status).toBe(429);
   });
 
   it("429 for everyone after 30 wrong passwords in total, even from rotating IPs", async () => {
     for (let i = 0; i < 30; i++) {
-      expect((await login(req("/api/admin/login", { method: "POST", body: { password: "sai" }, auth: false, ip: `10.2.${i}.1` }))).status).toBe(401);
+      expect((await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "sai" }, auth: false, ip: `10.2.${i}.1` }))).status).toBe(401);
     }
-    const blocked = await login(req("/api/admin/login", { method: "POST", body: { password: "test-admin-password" }, auth: false, ip: "10.3.0.1" }));
+    const blocked = await login(req("/api/admin/login", { method: "POST", body: { username: "test-admin", password: "test-admin-password" }, auth: false, ip: "10.3.0.1" }));
     expect(blocked.status).toBe(429);
   });
 });

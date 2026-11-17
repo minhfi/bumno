@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { checkAdminPassword, createSessionToken, SESSION_MAX_AGE_SECONDS, verifySessionToken } from "./session";
+import { checkAdminCredentials, createSessionToken, SESSION_MAX_AGE_SECONDS, verifySessionToken } from "./session";
 
 const secret = "unit-test-secret-that-is-at-least-32-chars";
 const t0 = Date.UTC(2026, 10, 9);
@@ -30,11 +30,13 @@ describe("session token", () => {
   });
 });
 
-describe("checkAdminPassword", () => {
-  it("compares against ADMIN_PASSWORD", () => {
+describe("checkAdminCredentials", () => {
+  it("compares against ADMIN_USERNAME and ADMIN_PASSWORD", () => {
+    vi.stubEnv("ADMIN_USERNAME", "quản-lý");
     vi.stubEnv("ADMIN_PASSWORD", "đúng-rồi");
-    expect(checkAdminPassword("đúng-rồi")).toBe(true);
-    expect(checkAdminPassword("sai")).toBe(false);
-    expect(checkAdminPassword("")).toBe(false);
+    expect(checkAdminCredentials("quản-lý", "đúng-rồi")).toBe(true);
+    expect(checkAdminCredentials("quản-lý", "sai")).toBe(false);
+    expect(checkAdminCredentials("khác", "đúng-rồi")).toBe(false);
+    expect(checkAdminCredentials("", "")).toBe(false);
   });
 });

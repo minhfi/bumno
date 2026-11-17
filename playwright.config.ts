@@ -11,6 +11,7 @@ function fakeNow(): string {
 
 export const FAKE_NOW = process.env.E2E_FAKE_NOW ?? fakeNow();
 process.env.E2E_FAKE_NOW = FAKE_NOW;
+export const ADMIN_USERNAME = "e2e-admin";
 export const ADMIN_PASSWORD = "e2e-admin-password";
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
@@ -42,6 +43,7 @@ export default defineConfig({
     env: {
       DATABASE_URL: databaseUrl,
       BUMNO_FAKE_NOW: FAKE_NOW,
+      ADMIN_USERNAME,
       ADMIN_PASSWORD,
       SESSION_SECRET: "e2e-session-secret-that-is-at-least-32-chars",
     },
