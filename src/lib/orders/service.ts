@@ -126,7 +126,9 @@ export async function updateOrder(code: string, changes: UpdateOrderData): Promi
       },
     });
     if (updated.count === 0) {
-      return { ok: false, reason: editing ? "NOT_EDITABLE" : "INVALID_TRANSITION", from: current.status } as const;
+      // Lost a race with another change: report the status the order has now, not the one read before.
+      const latest = await tx.order.findUnique({ where: { number }, select: { status: true } });
+      return { ok: false, reason: editing ? "NOT_EDITABLE" : "INVALID_TRANSITION", from: latest?.status ?? current.status } as const;
     }
     if (repriced) {
       await tx.orderItem.deleteMany({ where: { orderId: current.id } });

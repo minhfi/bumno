@@ -3,6 +3,9 @@ import { productIds } from "@/config/menu";
 import { ORDER_STATUSES } from "./types";
 
 export const MAX_QUANTITY = 20;
+export const MAX_ADDRESS_LENGTH = 300;
+/** Most distinct lines an edited order can carry (menu items plus legacy lines). */
+const MAX_ORDER_LINES = 20;
 
 /** Removes spaces, dots and dashes people type into phone numbers. */
 export function normalizePhone(value: string): string {
@@ -22,7 +25,7 @@ const addressSchema = z
   .string({ error: "Vui lòng nhập địa chỉ" })
   .trim()
   .min(5, "Vui lòng nhập địa chỉ giao hàng")
-  .max(300, "Địa chỉ tối đa 300 ký tự");
+  .max(MAX_ADDRESS_LENGTH, `Địa chỉ tối đa ${MAX_ADDRESS_LENGTH} ký tự`);
 
 const hasItemsToOrder = (items: { quantity: number }[]) => items.some((item) => item.quantity > 0);
 const hasUniqueProducts = (items: { productId: string }[]) =>
@@ -88,7 +91,7 @@ export const updateOrderSchema = z
     address: addressSchema.optional(),
     items: z
       .array(editItemSchema, { error: "Chọn ít nhất 1 món" })
-      .max(20, "Quá nhiều món")
+      .max(MAX_ORDER_LINES, "Quá nhiều món")
       .refine(hasItemsToOrder, "Chọn ít nhất 1 món")
       .refine(hasUniqueProducts, "Mỗi món chỉ chọn một lần")
       .optional(),
@@ -103,6 +106,8 @@ export const updateOrderSchema = z
     { message: "Không đổi trạng thái cùng lúc với địa chỉ hoặc món", path: ["status"] },
   );
 
+export type UpdateOrderData = z.output<typeof updateOrderSchema>;
+
 /** First error message per top-level field, for the `fields` part of a VALIDATION error. */
 export function fieldErrors(error: z.ZodError): Record<string, string> {
   const fields: Record<string, string> = {};
@@ -112,4 +117,3 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return fields;
 }
-export type UpdateOrderData = z.output<typeof updateOrderSchema>;

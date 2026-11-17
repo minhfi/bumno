@@ -105,10 +105,15 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       setNotice("Đã cập nhật");
       onUpdated(order);
       // The clicked button may disappear after a status change; keep focus inside the dialog.
-      if (kind === "status") titleRef.current?.focus();
+      if (kind !== "note") titleRef.current?.focus();
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) return onUnauthorized();
       setActionError(error instanceof ApiError ? error.message : "Có lỗi xảy ra. Vui lòng thử lại.");
+      // Someone else changed the order meanwhile: show what it looks like now.
+      if (error instanceof ApiError && (error.code === "NOT_EDITABLE" || error.code === "INVALID_TRANSITION")) {
+        setEditing(false);
+        setAttempt((n) => n + 1);
+      }
     } finally {
       setSaving(null);
     }
@@ -124,7 +129,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="order-detail-title"
-      className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/45 sm:border-l-4 sm:border-rim"
+      className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto scroll-pt-24 overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/45 sm:border-l-4 sm:border-rim"
     >
       <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-5 pb-4 pt-5">
         <div>
@@ -158,7 +163,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       </div>
 
       <div className="space-y-7 px-5 py-6">
-        {load.status === "loading" ? <p className="text-ink/70">Đang tải đơn…</p> : null}
+        {load.status === "loading" ? <p role="status" className="text-ink/70">Đang tải đơn…</p> : null}
         {load.status === "error" ? (
           <div role="alert" className="border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
             <p>{load.message}</p>
@@ -207,7 +212,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       >
                         Xác nhận huỷ
                       </button>
-                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 px-3 font-medium">
+                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 rounded-lg px-3 font-medium hover:bg-ink/6">
                         Không
                       </button>
                     </div>
@@ -301,12 +306,12 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                   setNote(e.target.value);
                   setNotice(null);
                 }}
-                className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none"
+                className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong"
               />
               <button
                 type="submit"
                 disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-11 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25"
+                className="mt-2 min-h-11 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
               >
                 {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
               </button>

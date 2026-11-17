@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { formatVnd, menu } from "@/config/menu";
-import { fieldErrors, MAX_QUANTITY, updateOrderSchema } from "@/lib/orders/schema";
+import { fieldErrors, MAX_ADDRESS_LENGTH, MAX_QUANTITY, updateOrderSchema } from "@/lib/orders/schema";
 import type { OrderDetail } from "@/lib/orders/types";
 
 export type OrderEdit = { address: string; items: { productId: string; quantity: number }[] };
@@ -31,6 +31,11 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
   const [address, setAddress] = useState(order.address);
   const [rows, setRows] = useState(() => startRows(order));
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Opening the form moves focus to the first field, since the button that opened it is gone.
+  useEffect(() => {
+    document.getElementById("edit-address")?.focus();
+  }, []);
 
   const total = rows.reduce((sum, row) => sum + row.unitPrice * row.quantity, 0);
 
@@ -74,15 +79,17 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
         <textarea
           id="edit-address"
           rows={3}
-          maxLength={300}
+          maxLength={MAX_ADDRESS_LENGTH}
           value={address}
           onChange={(e) => {
             setAddress(e.target.value);
             if (errors.address) setErrors((current) => ({ ...current, address: "" }));
           }}
+          name="address"
+          autoComplete="off"
           aria-invalid={Boolean(errors.address)}
           aria-describedby={errors.address ? "edit-address-error" : undefined}
-          className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none aria-[invalid=true]:border-chili"
+          className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong aria-[invalid=true]:border-chili"
         />
         {errors.address ? (
           <p id="edit-address-error" role="alert" className="mt-1.5 text-sm font-medium text-chili">
@@ -92,7 +99,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
       </div>
 
       <fieldset aria-describedby={errors.items ? "edit-items-error" : undefined}>
-        <legend id="edit-items-legend" tabIndex={-1} className="font-semibold focus:outline-none">
+        <legend id="edit-items-legend" tabIndex={-1} className="font-semibold">
           Món
         </legend>
         <ul className="mt-3 space-y-3">
@@ -110,9 +117,9 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
                   onClick={() => changeQuantity(row.productId, -1)}
                   className={stepperClass}
                 >
-                  −
+                  <span aria-hidden>−</span>
                 </button>
-                <span aria-live="polite" className="w-8 text-center text-lg font-semibold tabular-nums">
+                <span className="w-8 text-center text-lg font-semibold tabular-nums">
                   {row.quantity}
                 </span>
                 <button
@@ -122,7 +129,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
                   onClick={() => changeQuantity(row.productId, 1)}
                   className={stepperClass}
                 >
-                  +
+                  <span aria-hidden>+</span>
                 </button>
               </div>
             </li>
@@ -133,7 +140,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
             {errors.items}
           </p>
         ) : null}
-        <p className="mt-4 flex items-baseline gap-2 border-t border-ink/10 pt-3">
+        <p role="status" className="mt-4 flex items-baseline gap-2 border-t border-ink/10 pt-3">
           <span className="font-semibold">Tổng tạm tính</span>
           <span aria-hidden className="flex-1" />
           <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(total)}</span>

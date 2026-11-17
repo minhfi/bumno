@@ -102,7 +102,8 @@ test.describe("editing an order", () => {
     await expect(dialog).toContainText("60.000đ");
     await dialog.getByRole("button", { name: "Đóng" }).click();
     await expect(page.getByRole("button", { name: `Xem đơn ${code}` })).toBeVisible();
-    await expect(page.getByText("60.000đ").filter({ visible: true }).first()).toBeVisible();
+    const row = page.locator("tr, li").filter({ has: page.getByRole("button", { name: `Xem đơn ${code}` }) }).filter({ visible: true });
+    await expect(row).toContainText("60.000đ");
 
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
     await dialog.getByRole("button", { name: "Huỷ đơn" }).click();
