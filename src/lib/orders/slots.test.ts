@@ -60,7 +60,7 @@ describe("slotDayLabel", () => {
   it("names the day of a slot relative to now", () => {
     const now = vn("2026-11-09T23:50");
     expect(slotDayLabel(vn("2026-11-09T06:00"), now)).toBe("hôm nay");
-    expect(slotDayLabel(vn("2026-11-10T06:00"), now)).toBe("mai");
+    expect(slotDayLabel(vn("2026-11-10T06:00"), now)).toBe("mai 10/11");
     expect(slotDayLabel(vn("2026-11-08T19:30").toISOString(), now)).toBe("hôm qua");
     expect(slotDayLabel(vn("2026-11-12T08:00"), now)).toBe("12/11");
   });

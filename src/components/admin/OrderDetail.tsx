@@ -140,6 +140,10 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               , đặt lúc {formatSlot(order.createdAt)}
             </p>
           ) : null}
+          <div aria-live="polite" className="empty:hidden">
+            {notice ? <p className="mt-1 font-medium text-herb">{notice}</p> : null}
+            {actionError ? <p role="alert" className="mt-1 font-medium text-chili">{actionError}</p> : null}
+          </div>
         </div>
         <button
           type="button"
@@ -155,7 +159,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         {load.status === "error" ? (
           <div role="alert" className="border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
             <p>{load.message}</p>
-            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 min-h-10 font-semibold underline underline-offset-4">
+            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 min-h-11 font-semibold underline underline-offset-4">
               Thử lại
             </button>
           </div>
@@ -208,10 +212,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                 </div>
               ) : null}
 
-              <div aria-live="polite" className="empty:hidden">
-                {notice ? <p className="font-medium text-herb">{notice}</p> : null}
-                {actionError ? <p role="alert" className="font-medium text-chili">{actionError}</p> : null}
-              </div>
             </div>
 
             <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-5">
@@ -222,7 +222,10 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               </a>
               <p className="mt-2 break-words">{order.address}</p>
               {order.note ? (
-                <p className="mt-3 whitespace-pre-line break-words border-l-4 border-rim/60 pl-3 text-ink/85">{order.note}</p>
+                <div className="mt-3 border-l-4 border-rim/60 pl-3">
+                  <p className="text-sm text-ink/65">Ghi chú của khách</p>
+                  <p className="whitespace-pre-line break-words text-ink/85">{order.note}</p>
+                </div>
               ) : null}
             </section>
 

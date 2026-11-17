@@ -1,6 +1,7 @@
 import { formatVnd } from "@/config/menu";
 import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
 import type { OrderSummary } from "@/lib/orders/types";
+import { isClosedOrder, rowAccentClass, rowOpenButtonClass } from "./order-row";
 import { StatusBadge } from "./StatusBadge";
 
 type Props = { orders: OrderSummary[]; onOpen: (code: string) => void };
@@ -24,12 +25,12 @@ export function OrderTable({ orders, onOpen }: Props) {
         {orders.map((order) => (
           <tr
             key={order.code}
-            className={`relative border-t border-ink/10 hover:bg-ink/[0.03] ${
-              order.status === "NEW" ? "shadow-[inset_4px_0_0_var(--rim)]" : ""
-            } ${order.status === "CANCELLED" || order.status === "COMPLETED" ? "text-ink/55" : ""}`}
+            className={`relative border-t border-ink/10 hover:bg-ink/[0.03] ${rowAccentClass(order.status)} ${
+              isClosedOrder(order.status) ? "text-ink/65" : ""
+            }`}
           >
             <td className="py-3.5 pl-6 pr-4 align-top">
-              <span className="block font-display text-[34px] font-extrabold leading-none text-ink">
+              <span className="block font-display text-[40px] font-extrabold leading-none text-ink">
                 {formatSlot(order.deliverySlot)}
               </span>
               <span className="mt-1 block text-sm text-ink/65">{slotDayLabel(order.deliverySlot, now)}</span>
@@ -38,7 +39,7 @@ export function OrderTable({ orders, onOpen }: Props) {
               <button
                 type="button"
                 onClick={() => onOpen(order.code)}
-                className="font-display text-xl font-bold tracking-wide text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:-outline-offset-3 focus-visible:after:outline-rim-strong"
+                className={`font-display text-xl font-bold tracking-wide text-ink ${rowOpenButtonClass}`}
               >
                 <span className="sr-only">Xem đơn </span>
                 {order.code}

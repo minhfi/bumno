@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { apiRequest } from "@/lib/api-client";
-import { shopDateString } from "@/lib/orders/slots";
+import { DAY_MS, shopDateString } from "@/lib/orders/slots";
 import { isOrderStatus } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData } from "@/lib/orders/types";
 import { OrderCard } from "./OrderCard";
@@ -23,6 +23,14 @@ function readFilters(params: URLSearchParams): OrderFiltersValue {
   };
 }
 
+/** The one filter to undo when nothing matches: search first, then status, then date. */
+function emptyStateAction(filters: OrderFiltersValue): { label: string; next: OrderFiltersValue } | null {
+  if (filters.q) return { label: "Xoá tìm kiếm", next: { ...filters, q: undefined, page: 1 } };
+  if (filters.status) return { label: "Xem mọi trạng thái", next: { ...filters, status: undefined, page: 1 } };
+  if (filters.date) return { label: "Về hôm nay", next: { ...filters, date: undefined, page: 1 } };
+  return null;
+}
+
 export function AdminOrders() {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,7 +38,7 @@ export function AdminOrders() {
   const filters = readFilters(new URLSearchParams(searchParams.toString()));
   const [openCode, setOpenCode] = useState<string | null>(null);
   const [today] = useState(() => shopDateString(new Date()));
-  const [yesterday] = useState(() => shopDateString(new Date(Date.now() - 86_400_000)));
+  const [yesterday] = useState(() => shopDateString(new Date(Date.now() - DAY_MS)));
 
   const goToLogin = useCallback(() => router.replace("/admin"), [router]);
   const { data, error, loading, reload, replaceItem } = useOrders(filters, goToLogin);
@@ -59,20 +67,14 @@ export function AdminOrders() {
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
-  const emptyAction = filters.q
-    ? { label: "Xoá tìm kiếm", next: { ...filters, q: undefined, page: 1 } }
-    : filters.status
-      ? { label: "Xem mọi trạng thái", next: { ...filters, status: undefined, page: 1 } }
-      : filters.date
-        ? { label: "Về hôm nay", next: { ...filters, date: undefined, page: 1 } }
-        : null;
+  const emptyAction = emptyStateAction(filters);
 
   return (
     <div className="mx-auto max-w-[1120px] px-4 pb-10 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4 border-b-4 border-rim pb-3">
         <div>
           <p className="font-display text-xl font-extrabold text-rim-strong">Bumno</p>
-          <h1 className="font-display text-[40px] font-extrabold uppercase leading-none">Đơn hàng</h1>
+          <h1 className="font-display text-[30px] font-extrabold uppercase leading-none">Đơn hàng</h1>
         </div>
         <button type="button" onClick={logout} className="min-h-11 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink">
           Đăng xuất
@@ -86,7 +88,7 @@ export function AdminOrders() {
       {error ? (
         <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
           <span>{data ? "Không làm mới được danh sách. Đang hiện dữ liệu cũ." : error.message}</span>
-          <button type="button" onClick={() => void reload()} className="min-h-10 font-semibold underline underline-offset-4">
+          <button type="button" onClick={() => void reload()} className="min-h-11 font-semibold underline underline-offset-4">
             Thử lại
           </button>
         </div>

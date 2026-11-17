@@ -17,7 +17,7 @@ type Props = {
 const fieldClass =
   "min-h-11 rounded-lg border border-ink/20 bg-surface px-3 focus:border-rim-strong focus:outline-none";
 const chipClass =
-  "min-h-10 shrink-0 rounded-full px-4 text-[15px] font-medium text-ink/75 hover:bg-ink/6 aria-pressed:bg-ink aria-pressed:text-enamel";
+  "min-h-11 shrink-0 rounded-full px-4 text-[15px] font-medium text-ink/75 hover:bg-ink/6 aria-pressed:bg-ink aria-pressed:text-enamel";
 
 const statusTabs: { status: OrderStatus | undefined; label: string }[] = [
   { status: undefined, label: "Tất cả" },
@@ -57,7 +57,6 @@ export function OrderFilters({ value, today, yesterday, onChange }: Props) {
           <input
             type="date"
             value={date}
-            max={today}
             onChange={(e) => setDate(e.target.value)}
             className={`${fieldClass} text-ink tabular-nums`}
           />
