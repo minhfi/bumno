@@ -5,6 +5,7 @@ import {
   isSlotAvailable,
   shopDateString,
   shopDayRange,
+  slotDayLabel,
 } from "./slots";
 
 /** A time in Asia/Ho_Chi_Minh. */
@@ -52,5 +53,15 @@ describe("shop day helpers", () => {
     expect(range?.end.toISOString()).toBe("2026-11-09T17:00:00.000Z");
     expect(shopDayRange("2026-02-30")).toBeNull();
     expect(shopDayRange("hôm nay")).toBeNull();
+  });
+});
+
+describe("slotDayLabel", () => {
+  it("names the day of a slot relative to now", () => {
+    const now = vn("2026-11-09T23:50");
+    expect(slotDayLabel(vn("2026-11-09T06:00"), now)).toBe("hôm nay");
+    expect(slotDayLabel(vn("2026-11-10T06:00"), now)).toBe("mai");
+    expect(slotDayLabel(vn("2026-11-08T19:30").toISOString(), now)).toBe("hôm qua");
+    expect(slotDayLabel(vn("2026-11-12T08:00"), now)).toBe("12/11");
   });
 });

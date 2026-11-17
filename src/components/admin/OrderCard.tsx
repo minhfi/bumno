@@ -1,36 +1,49 @@
 import { formatVnd } from "@/config/menu";
-import { formatSlot } from "@/lib/orders/slots";
+import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
 import type { OrderSummary } from "@/lib/orders/types";
 import { StatusBadge } from "./StatusBadge";
 
 type Props = { order: OrderSummary; onOpen: (code: string) => void };
 
-/** Mobile layout of one order row. */
+/** Mobile ticket of one order: delivery time on the left, the rest beside it. The whole ticket opens the order. */
 export function OrderCard({ order, onOpen }: Props) {
+  const done = order.status === "CANCELLED" || order.status === "COMPLETED";
   return (
-    <li className={`rounded-xl border border-ink/12 p-4 ${order.status === "NEW" ? "bg-rim/6" : "bg-surface"}`}>
-      <div className="flex items-start justify-between gap-3">
-        <button type="button" onClick={() => onOpen(order.code)} className="text-left">
-          <span className="block font-semibold text-rim-strong">
+    <li
+      className={`relative grid grid-cols-[4.75rem_1fr] gap-x-3 border-t border-ink/10 bg-surface py-3.5 pl-4 pr-4 ${
+        order.status === "NEW" ? "shadow-[inset_4px_0_0_var(--rim)]" : ""
+      } ${done ? "text-ink/55" : ""}`}
+    >
+      <div>
+        <span className="block font-display text-[30px] font-extrabold leading-none tabular-nums text-ink">
+          {formatSlot(order.deliverySlot)}
+        </span>
+        <span className="mt-1 block text-sm text-ink/65">{slotDayLabel(order.deliverySlot, new Date())}</span>
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => onOpen(order.code)}
+            className="font-display text-lg font-bold tracking-wide text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:-outline-offset-3 focus-visible:after:outline-rim-strong"
+          >
             <span className="sr-only">Xem đơn </span>
             {order.code}
-          </span>
-          <span className="block text-sm text-ink/70 tabular-nums">
-            Đặt {formatSlot(order.createdAt)} · Nhận {formatSlot(order.deliverySlot)}
-          </span>
-        </button>
-        <StatusBadge status={order.status} />
-      </div>
-      <div className="mt-3 flex items-center justify-between gap-3 text-[15px]">
-        <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className="min-w-0 truncate" title={order.customerName}>
+          </button>
+          <StatusBadge status={order.status} />
+        </div>
+        <div className="mt-1 flex items-baseline justify-between gap-3">
+          <span className="min-w-0 truncate font-medium" title={order.customerName}>
             {order.customerName}
           </span>
-          <a href={`tel:${order.phone}`} className="shrink-0 text-rim-strong underline underline-offset-4">
-            {order.phone}
-          </a>
-        </span>
-        <span className="shrink-0 font-semibold tabular-nums">{formatVnd(order.total)}</span>
+          <span className="shrink-0 font-display text-lg font-bold tabular-nums">{formatVnd(order.total)}</span>
+        </div>
+        <a
+          href={`tel:${order.phone}`}
+          className="relative z-10 text-[15px] tabular-nums text-ink/75 underline underline-offset-4"
+        >
+          {order.phone}
+        </a>
       </div>
     </li>
   );

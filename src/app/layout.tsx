@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="vi" className={`${sign.variable} ${body.variable} antialiased`}>
+    <html lang="vi" data-scroll-behavior="smooth" className={`${sign.variable} ${body.variable} antialiased`}>
       <body className="min-h-dvh font-sans text-base leading-relaxed">{children}</body>
     </html>
   );

@@ -59,3 +59,14 @@ export function formatSlot(slot: Date | string): string {
   const minute = shopMinuteOfDay(date);
   return `${Math.floor(minute / 60)}:${String(minute % 60).padStart(2, "0")}`;
 }
+
+/** Which day a slot falls on, relative to `now`: `hôm nay`, `mai`, `hôm qua`, or `18/11`. */
+export function slotDayLabel(slot: Date | string, now: Date): string {
+  const date = shopDateString(typeof slot === "string" ? new Date(slot) : slot);
+  const dayMs = 86_400_000;
+  if (date === shopDateString(now)) return "hôm nay";
+  if (date === shopDateString(new Date(now.getTime() + dayMs))) return "mai";
+  if (date === shopDateString(new Date(now.getTime() - dayMs))) return "hôm qua";
+  const [, month, day] = date.split("-");
+  return `${day}/${month}`;
+}

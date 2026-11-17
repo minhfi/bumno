@@ -1,48 +1,60 @@
 import { formatVnd } from "@/config/menu";
-import { formatSlot } from "@/lib/orders/slots";
+import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
 import type { OrderSummary } from "@/lib/orders/types";
 import { StatusBadge } from "./StatusBadge";
 
 type Props = { orders: OrderSummary[]; onOpen: (code: string) => void };
 
+/** Desktop list: one ticket per row, led by the delivery time. The whole row opens the order. */
 export function OrderTable({ orders, onOpen }: Props) {
+  const now = new Date();
   return (
-    <table className="w-full border-collapse text-left text-[15px] tabular-nums">
+    <table className="w-full border-collapse text-left tabular-nums">
       <caption className="sr-only">Danh sách đơn hàng</caption>
-      <thead className="border-b border-ink/15 text-sm text-ink/70">
+      <thead className="text-sm text-ink/65">
         <tr>
-          <th scope="col" className="py-2 pr-3 font-medium">Mã</th>
-          <th scope="col" className="py-2 pr-3 font-medium">Đặt lúc</th>
-          <th scope="col" className="py-2 pr-3 font-medium">Khách</th>
-          <th scope="col" className="py-2 pr-3 font-medium">SĐT</th>
-          <th scope="col" className="py-2 pr-3 font-medium">Nhận</th>
-          <th scope="col" className="py-2 pr-3 text-right font-medium">Tổng</th>
-          <th scope="col" className="py-2 font-medium">Trạng thái</th>
+          <th scope="col" className="w-36 py-2 pl-6 pr-4 font-medium">Giờ nhận</th>
+          <th scope="col" className="py-2 pr-4 font-medium">Đơn</th>
+          <th scope="col" className="py-2 pr-4 font-medium">Khách</th>
+          <th scope="col" className="py-2 pr-4 text-right font-medium">Tổng</th>
+          <th scope="col" className="w-40 py-2 pr-6 font-medium">Trạng thái</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody className="bg-surface">
         {orders.map((order) => (
-          <tr key={order.code} className={`border-b border-ink/10 ${order.status === "NEW" ? "bg-rim/6" : ""}`}>
-            <td className="py-2.5 pr-3">
+          <tr
+            key={order.code}
+            className={`relative border-t border-ink/10 hover:bg-ink/[0.03] ${
+              order.status === "NEW" ? "shadow-[inset_4px_0_0_var(--rim)]" : ""
+            } ${order.status === "CANCELLED" || order.status === "COMPLETED" ? "text-ink/55" : ""}`}
+          >
+            <td className="py-3.5 pl-6 pr-4 align-top">
+              <span className="block font-display text-[34px] font-extrabold leading-none text-ink">
+                {formatSlot(order.deliverySlot)}
+              </span>
+              <span className="mt-1 block text-sm text-ink/65">{slotDayLabel(order.deliverySlot, now)}</span>
+            </td>
+            <td className="py-3.5 pr-4 align-top">
               <button
                 type="button"
                 onClick={() => onOpen(order.code)}
-                className="font-semibold text-rim-strong underline-offset-4 hover:underline"
+                className="font-display text-xl font-bold tracking-wide text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none focus-visible:after:outline-3 focus-visible:after:-outline-offset-3 focus-visible:after:outline-rim-strong"
               >
                 <span className="sr-only">Xem đơn </span>
                 {order.code}
               </button>
+              <span className="block text-sm text-ink/65">Đặt lúc {formatSlot(order.createdAt)}</span>
             </td>
-            <td className="py-2.5 pr-3">{formatSlot(order.createdAt)}</td>
-            <td className="max-w-[16ch] truncate py-2.5 pr-3" title={order.customerName}>{order.customerName}</td>
-            <td className="py-2.5 pr-3">
-              <a href={`tel:${order.phone}`} className="underline-offset-4 hover:underline">
+            <td className="max-w-[24ch] py-3.5 pr-4 align-top">
+              <span className="block truncate font-medium" title={order.customerName}>
+                {order.customerName}
+              </span>
+              <a href={`tel:${order.phone}`} className="relative z-10 text-[15px] text-ink/75 underline-offset-4 hover:underline">
                 {order.phone}
               </a>
             </td>
-            <td className="py-2.5 pr-3">{formatSlot(order.deliverySlot)}</td>
-            <td className="py-2.5 pr-3 text-right">{formatVnd(order.total)}</td>
-            <td className="py-2.5">
+            <td className="py-3.5 pr-4 text-right align-top font-display text-xl font-bold">{formatVnd(order.total)}</td>
+            <td className="py-3.5 pr-6 align-top">
               <StatusBadge status={order.status} />
             </td>
           </tr>

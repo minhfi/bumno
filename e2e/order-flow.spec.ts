@@ -37,7 +37,7 @@ test.describe("order flow", () => {
     await expect(dialog).toContainText("Ít hành");
     await dialog.getByRole("button", { name: "Xác nhận đơn" }).click();
     await expect(dialog.getByText("Đã cập nhật")).toBeVisible();
-    await expect(dialog.getByText("Đã xác nhận")).toBeVisible();
+    await expect(dialog.getByRole("listitem").and(dialog.locator("[aria-current=step]"))).toHaveText("Đã xác nhận");
 
     await dialog.getByLabel("Ghi chú nội bộ").fill("Đã gọi khách");
     await dialog.getByRole("button", { name: "Lưu ghi chú" }).click();

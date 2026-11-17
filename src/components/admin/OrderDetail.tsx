@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { formatVnd } from "@/config/menu";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
-import { formatSlot } from "@/lib/orders/slots";
-import { ADVANCE_LABELS, canCancel, nextStatus } from "@/lib/orders/status";
+import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
+import { ADVANCE_LABELS, canCancel, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData, OrderStatus } from "@/lib/orders/types";
-import { StatusBadge } from "./StatusBadge";
 
 type Props = {
   code: string;
@@ -14,6 +13,40 @@ type Props = {
   onUpdated: (order: OrderDetailData) => void;
   onUnauthorized: () => void;
 };
+
+const STEPS: OrderStatus[] = ["NEW", "CONFIRMED", "DELIVERING", "COMPLETED"];
+
+/** Where the order is in NEW → CONFIRMED → DELIVERING → COMPLETED; a cancelled order shows one line instead. */
+function StatusTrack({ status }: { status: OrderStatus }) {
+  if (status === "CANCELLED") {
+    return (
+      <p className="flex items-center gap-2 border-l-4 border-chili pl-3 font-semibold text-chili">{STATUS_LABELS.CANCELLED}</p>
+    );
+  }
+  const current = STEPS.indexOf(status);
+  return (
+    <ol aria-label="Tiến trình đơn" className="grid grid-cols-4">
+      {STEPS.map((step, index) => (
+        <li
+          key={step}
+          aria-current={index === current ? "step" : undefined}
+          className={`relative pt-5 text-[13px] leading-tight ${index <= current ? "font-semibold text-ink" : "text-ink/55"}`}
+        >
+          {index > 0 ? (
+            <span aria-hidden className={`absolute right-1/2 top-[7px] h-0.5 w-full ${index <= current ? "bg-rim" : "bg-ink/15"}`} />
+          ) : null}
+          <span
+            aria-hidden
+            className={`absolute left-1/2 top-0 size-4 -translate-x-1/2 rounded-full ${
+              index < current ? "bg-rim" : index === current ? "bg-rim ring-4 ring-rim/30" : "border-2 border-ink/25 bg-surface"
+            }`}
+          />
+          <span className="block px-1 text-center">{STATUS_LABELS[step]}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; order: OrderDetailData };
 
@@ -88,27 +121,41 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       ref={dialogRef}
       onClose={onClose}
       aria-labelledby="order-detail-title"
-      className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/40 sm:border-l sm:border-ink/15"
+      className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/45 sm:border-l-4 sm:border-rim"
     >
-      <div className="flex items-center justify-between gap-3 border-b border-ink/15 px-5 py-4">
-        <h2 ref={titleRef} tabIndex={-1} id="order-detail-title" className="text-xl font-semibold">
-          Đơn {code}
-        </h2>
+      <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-5 pb-4 pt-5">
+        <div>
+          <h2
+            ref={titleRef}
+            tabIndex={-1}
+            id="order-detail-title"
+            className="font-display text-[32px] font-extrabold leading-none tracking-wide focus:outline-none"
+          >
+            <span className="sr-only">Đơn </span>
+            {code}
+          </h2>
+          {order ? (
+            <p className="mt-1.5 text-[15px] text-ink/75 tabular-nums">
+              Nhận <span className="font-semibold text-ink">{formatSlot(order.deliverySlot)} {slotDayLabel(order.deliverySlot, new Date())}</span>
+              , đặt lúc {formatSlot(order.createdAt)}
+            </p>
+          ) : null}
+        </div>
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
-          className="rounded-lg px-3 py-1.5 font-medium text-ink/75 hover:bg-ink/8"
+          className="min-h-11 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink"
         >
           Đóng
         </button>
       </div>
 
-      <div className="space-y-6 px-5 py-5">
-        {load.status === "loading" ? <p className="text-ink/70">Đang tải…</p> : null}
+      <div className="space-y-7 px-5 py-6">
+        {load.status === "loading" ? <p className="text-ink/70">Đang tải đơn…</p> : null}
         {load.status === "error" ? (
-          <div role="alert" className="rounded-lg bg-chili/10 px-4 py-3 text-chili">
+          <div role="alert" className="border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
             <p>{load.message}</p>
-            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 font-semibold underline">
+            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 min-h-10 font-semibold underline underline-offset-4">
               Thử lại
             </button>
           </div>
@@ -116,89 +163,91 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
 
         {order ? (
           <>
-            <div className="flex flex-wrap items-center gap-3">
-              <StatusBadge status={order.status} />
-              <span className="text-sm text-ink/70 tabular-nums">
-                Đặt {formatSlot(order.createdAt)} · Nhận {formatSlot(order.deliverySlot)}
-              </span>
+            <div className="space-y-5">
+              <StatusTrack status={order.status} />
+
+              {next || canCancel(order.status) ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  {next && nextLabel ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => save({ status: next }, "status")}
+                      className="min-h-12 flex-1 rounded-lg bg-rim px-5 text-lg font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
+                    >
+                      {saving === "status" ? "Đang lưu…" : nextLabel}
+                    </button>
+                  ) : null}
+                  {canCancel(order.status) && !confirmCancel ? (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setConfirmCancel(true)}
+                      className="min-h-12 rounded-lg px-4 font-semibold text-chili hover:bg-chili/8 disabled:opacity-60"
+                    >
+                      Huỷ đơn
+                    </button>
+                  ) : null}
+                  {confirmCancel ? (
+                    <div className="flex w-full flex-wrap items-center gap-3 border-l-4 border-chili bg-chili/8 p-3">
+                      <span className="font-medium">Huỷ đơn {order.code}?</span>
+                      <button
+                        ref={confirmCancelRef}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => save({ status: "CANCELLED" }, "status")}
+                        className="min-h-11 rounded-lg bg-chili px-4 font-semibold text-enamel disabled:opacity-60"
+                      >
+                        Xác nhận huỷ
+                      </button>
+                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 px-3 font-medium">
+                        Không
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div aria-live="polite" className="empty:hidden">
+                {notice ? <p className="font-medium text-herb">{notice}</p> : null}
+                {actionError ? <p role="alert" className="font-medium text-chili">{actionError}</p> : null}
+              </div>
             </div>
 
-            <dl className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-2 text-[15px]">
-              <dt className="text-ink/70">Khách</dt>
-              <dd>{order.customerName}</dd>
-              <dt className="text-ink/70">SĐT</dt>
-              <dd>
-                <a href={`tel:${order.phone}`} className="text-rim-strong underline underline-offset-4">
-                  {order.phone}
-                </a>
-              </dd>
-              <dt className="text-ink/70">Địa chỉ</dt>
-              <dd className="break-words">{order.address}</dd>
-              <dt className="text-ink/70">Ghi chú khách</dt>
-              <dd className="whitespace-pre-line break-words">{order.note || "—"}</dd>
-            </dl>
+            <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-5">
+              <h3 id="customer-title" className="sr-only">Khách hàng</h3>
+              <p className="text-lg font-semibold">{order.customerName}</p>
+              <a href={`tel:${order.phone}`} className="mt-0.5 inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
+                {order.phone}
+              </a>
+              <p className="mt-2 break-words">{order.address}</p>
+              {order.note ? (
+                <p className="mt-3 whitespace-pre-line break-words border-l-4 border-rim/60 pl-3 text-ink/85">{order.note}</p>
+              ) : null}
+            </section>
 
-            <div>
-              <h3 className="font-semibold">Món</h3>
-              <ul className="mt-2 divide-y divide-ink/10 border-y border-ink/10 text-[15px] tabular-nums">
+            <section aria-labelledby="items-title" className="border-t border-ink/10 pt-5">
+              <h3 id="items-title" className="font-semibold">Món</h3>
+              <ul className="mt-3 space-y-2 tabular-nums">
                 {order.items.map((item) => (
-                  <li key={item.productId} className="flex justify-between gap-3 py-2">
+                  <li key={item.productId} className="flex items-baseline gap-2">
                     <span>
-                      {item.name} × {item.quantity}
+                      {item.name} <span className="text-ink/65">× {item.quantity}</span>
                     </span>
+                    <span aria-hidden className="mb-1 flex-1 border-b-2 border-dotted border-ink/20" />
                     <span>{formatVnd(item.unitPrice * item.quantity)}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 flex justify-between font-semibold tabular-nums">
-                <span>Tổng</span>
-                <span>{formatVnd(order.total)}</span>
+              <p className="mt-3 flex items-baseline gap-2 border-t border-ink/10 pt-3">
+                <span className="font-semibold">Tổng</span>
+                <span aria-hidden className="flex-1" />
+                <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(order.total)}</span>
               </p>
-            </div>
-
-            {next || canCancel(order.status) ? (
-              <div className="flex flex-wrap gap-3">
-                {next && nextLabel ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => save({ status: next }, "status")}
-                    className="min-h-11 rounded-lg bg-rim px-5 font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
-                  >
-                    {saving === "status" ? "Đang lưu…" : nextLabel}
-                  </button>
-                ) : null}
-                {canCancel(order.status) && !confirmCancel ? (
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setConfirmCancel(true)}
-                    className="min-h-11 rounded-lg border border-chili px-5 font-semibold text-chili hover:bg-chili/10 disabled:opacity-60"
-                  >
-                    Huỷ đơn
-                  </button>
-                ) : null}
-                {confirmCancel ? (
-                  <div className="flex w-full flex-wrap items-center gap-3 rounded-lg bg-chili/8 p-3">
-                    <span className="font-medium">Huỷ đơn {order.code}?</span>
-                    <button
-                      ref={confirmCancelRef}
-                      type="button"
-                      disabled={busy}
-                      onClick={() => save({ status: "CANCELLED" }, "status")}
-                      className="min-h-10 rounded-lg bg-chili px-4 font-semibold text-enamel disabled:opacity-60"
-                    >
-                      Xác nhận huỷ
-                    </button>
-                    <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-10 px-3 font-medium">
-                      Không
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
+            </section>
 
             <form
+              className="border-t border-ink/10 pt-5"
               onSubmit={(event) => {
                 event.preventDefault();
                 void save({ internalNote: note }, "note");
@@ -207,6 +256,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               <label htmlFor="internal-note" className="font-semibold">
                 Ghi chú nội bộ
               </label>
+              <p className="text-sm text-ink/65">Chỉ quán thấy, khách không thấy.</p>
               <textarea
                 id="internal-note"
                 rows={3}
@@ -216,21 +266,16 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                   setNote(e.target.value);
                   setNotice(null);
                 }}
-                className="mt-1.5 block w-full rounded-lg border border-ink/25 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none"
+                className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-10 rounded-lg border border-rim-strong px-4 font-medium text-rim-strong hover:bg-rim/10 disabled:opacity-50"
+                className="mt-2 min-h-11 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25"
               >
                 {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
               </button>
             </form>
-
-            <div aria-live="polite" className="min-h-6">
-              {notice ? <p className="font-medium text-herb">{notice}</p> : null}
-              {actionError ? <p role="alert" className="font-medium text-chili">{actionError}</p> : null}
-            </div>
           </>
         ) : null}
       </div>
