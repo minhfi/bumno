@@ -33,6 +33,7 @@ model Order {
   items        OrderItem[]
 
   @@index([createdAt])
+  @@index([deliverySlot])
   @@index([status])
   @@index([phone])
 }

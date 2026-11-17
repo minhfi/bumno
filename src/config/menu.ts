@@ -4,6 +4,8 @@ export type MenuItem = {
   description: string;
   /** Price in VND. */
   price: number;
+  /** Extra portion ordered alongside a main dish; shown as "món thêm" in reports. */
+  addon?: boolean;
 };
 
 // TODO(nội dung): tên món, mô tả và giá thật.
@@ -25,12 +27,14 @@ export const menu = [
     name: "Thêm lòng và gà",
     description: "Một phần lòng gà luộc thêm.",
     price: 15_000,
+    addon: true,
   },
   {
     id: "them-banh",
     name: "Thêm bánh",
     description: "Một phần bánh ướt thêm.",
     price: 10_000,
+    addon: true,
   },
 ] as const satisfies readonly MenuItem[];
 

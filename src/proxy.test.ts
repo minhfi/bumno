@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/auth/session";
-import { proxy } from "./proxy";
+import { config, proxy } from "./proxy";
 
 beforeAll(() => {
   process.env.SESSION_SECRET = "unit-test-secret-that-is-at-least-32-chars";
@@ -15,6 +15,15 @@ describe("proxy", () => {
     const response = proxy(request("/admin/orders"));
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe("http://localhost:3000/admin");
+  });
+
+  it("guards the reports page and API", () => {
+    expect(config.matcher).toContain("/admin/reports/:path*");
+    const response = proxy(request("/admin/reports"));
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("http://localhost:3000/admin");
+    expect(proxy(request("/api/admin/reports")).status).toBe(401);
+    expect(proxy(request("/admin/reports", createSessionToken())).headers.get("x-middleware-next")).toBe("1");
   });
 
   it("returns 401 for admin APIs without a valid session", async () => {

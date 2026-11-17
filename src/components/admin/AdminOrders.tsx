@@ -2,10 +2,10 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { apiRequest } from "@/lib/api-client";
 import { DAY_MS, shopDateString } from "@/lib/orders/slots";
 import { isOrderStatus } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData } from "@/lib/orders/types";
+import { AdminHeader } from "./AdminHeader";
 import { OrderCard } from "./OrderCard";
 import { OrderDetail } from "./OrderDetail";
 import { OrderFilters } from "./OrderFilters";
@@ -53,12 +53,6 @@ export function AdminOrders() {
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
-  async function logout() {
-    await apiRequest<void>("/api/admin/logout", { method: "POST" }).catch(() => undefined);
-    router.replace("/admin");
-    router.refresh();
-  }
-
   const handleUpdated = useCallback(
     ({ code, createdAt, customerName, phone, deliverySlot, total, status }: OrderDetailData) =>
       replaceItem({ code, createdAt, customerName, phone, deliverySlot, total, status }),
@@ -71,15 +65,7 @@ export function AdminOrders() {
 
   return (
     <div className="mx-auto max-w-[1120px] px-4 pb-10 pt-6 sm:px-6">
-      <header className="flex items-end justify-between gap-4 border-b-4 border-rim pb-3">
-        <div>
-          <p className="font-display text-xl font-extrabold text-rim-strong">Bumno</p>
-          <h1 className="font-display text-[30px] font-extrabold uppercase leading-none">Đơn hàng</h1>
-        </div>
-        <button type="button" onClick={logout} className="min-h-11 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink">
-          Đăng xuất
-        </button>
-      </header>
+      <AdminHeader title="Đơn hàng" />
 
       <div className="mt-5">
         <OrderFilters value={filters} today={today} yesterday={yesterday} onChange={setFilters} />
