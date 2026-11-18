@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatVnd } from "@/config/menu";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
 import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
-import { ADVANCE_LABELS, canCancel, canEdit, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
+import { canCancel, canEdit, isOrderStatus, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData, OrderStatus } from "@/lib/orders/types";
 import { OrderEditForm, type OrderEdit } from "./OrderEditForm";
 
@@ -49,21 +49,28 @@ function StatusTrack({ status }: { status: OrderStatus }) {
   );
 }
 
+/** The current status, the next step and "Đã huỷ" while it is still allowed: what the server accepts. */
+function statusChoices(status: OrderStatus): OrderStatus[] {
+  const next = nextStatus(status);
+  return [status, ...(next ? [next] : []), ...(canCancel(status) ? (["CANCELLED"] as const) : [])];
+}
+
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; order: OrderDetailData };
 
-/** Order detail in a modal dialog: items, address, notes, status actions and the internal note. */
+/** Order detail in a modal dialog: status, customer, items, and one form for the status and the internal note. */
 export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const confirmCancelRef = useRef<HTMLButtonElement>(null);
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
-  const [saving, setSaving] = useState<"status" | "note" | "edit" | null>(null);
+  const [saving, setSaving] = useState<"order" | "edit" | null>(null);
   const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [note, setNote] = useState("");
+  const [statusChoice, setStatusChoice] = useState<OrderStatus | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -76,6 +83,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       .then((order) => {
         setLoad({ status: "ready", order });
         setNote(order.internalNote ?? "");
+        setStatusChoice(order.status);
       })
       .catch((error: unknown) => {
         if (isAbortError(error)) return;
@@ -89,7 +97,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
     if (confirmCancel) confirmCancelRef.current?.focus();
   }, [confirmCancel]);
 
-  async function save(changes: { status?: OrderStatus; internalNote?: string } | OrderEdit, kind: "status" | "note" | "edit") {
+  async function save(changes: { status?: OrderStatus; internalNote?: string } | OrderEdit, kind: "order" | "edit") {
     setSaving(kind);
     setActionError(null);
     setNotice(null);
@@ -99,13 +107,14 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         body: changes,
       });
       setLoad({ status: "ready", order });
-      if (kind === "note") setNote(order.internalNote ?? "");
+      setNote(order.internalNote ?? "");
+      setStatusChoice(order.status);
       setConfirmCancel(false);
-      if (kind !== "note") setEditing(false);
+      setEditing(false);
       setNotice("Đã cập nhật");
       onUpdated(order);
-      // The clicked button may disappear after a status change; keep focus inside the dialog.
-      if (kind !== "note") titleRef.current?.focus();
+      // The form may change or disappear (a cancelled order); keep focus inside the dialog.
+      if (kind === "edit" || "status" in changes) titleRef.current?.focus();
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) return onUnauthorized();
       setActionError(error instanceof ApiError ? error.message : "Có lỗi xảy ra. Vui lòng thử lại.");
@@ -120,9 +129,20 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   }
 
   const order = load.status === "ready" ? load.order : null;
-  const next = order ? nextStatus(order.status) : null;
-  const nextLabel = next ? ADVANCE_LABELS[next] : undefined;
   const busy = saving !== null;
+  const chosenStatus = statusChoice ?? order?.status ?? null;
+  const statusChanged = order !== null && chosenStatus !== null && chosenStatus !== order.status;
+  const noteChanged = order !== null && note !== (order.internalNote ?? "");
+
+  /** Saves the status and the note in one request; moving to "Đã huỷ" asks first. */
+  function submitOrder(confirmed = false) {
+    if (!order || !chosenStatus || (!statusChanged && !noteChanged)) return;
+    if (statusChanged && chosenStatus === "CANCELLED" && !confirmed) {
+      setConfirmCancel(true);
+      return;
+    }
+    void save({ ...(statusChanged ? { status: chosenStatus } : {}), ...(noteChanged ? { internalNote: note } : {}) }, "order");
+  }
 
   return (
     <dialog
@@ -131,7 +151,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       aria-labelledby="order-detail-title"
       className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto scroll-pt-24 overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/45 sm:border-l-4 sm:border-rim"
     >
-      <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
+      <div className="sticky top-0 z-20 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
         <div>
           <h2
             ref={titleRef}
@@ -155,10 +175,13 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         </div>
         <button
           type="button"
+          aria-label="Đóng"
           onClick={() => dialogRef.current?.close()}
-          className="min-h-11 sm:min-h-9 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink"
+          className="-mr-2 grid size-10 shrink-0 place-items-center rounded-lg text-ink/70 hover:bg-ink/6 hover:text-ink sm:size-9"
         >
-          Đóng
+          <svg aria-hidden="true" viewBox="0 0 20 20" className="size-5 fill-none stroke-current stroke-2">
+            <path d="m5 5 10 10M15 5 5 15" strokeLinecap="round" />
+          </svg>
         </button>
       </div>
 
@@ -175,52 +198,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
 
         {order ? (
           <>
-            <div className="space-y-4 sm:space-y-5">
-              <StatusTrack status={order.status} />
-
-              {next || canCancel(order.status) ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  {next && nextLabel ? (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => save({ status: next }, "status")}
-                      className="min-h-10 rounded-lg bg-rim px-4 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60 sm:min-h-9 sm:text-sm"
-                    >
-                      {saving === "status" ? "Đang lưu…" : nextLabel}
-                    </button>
-                  ) : null}
-                  {canCancel(order.status) && !confirmCancel ? (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => setConfirmCancel(true)}
-                      className="min-h-10 rounded-lg px-3 text-[15px] font-semibold text-chili hover:bg-chili/8 disabled:opacity-60 sm:min-h-9 sm:text-sm"
-                    >
-                      Huỷ đơn
-                    </button>
-                  ) : null}
-                  {confirmCancel ? (
-                    <div className="flex w-full flex-wrap items-center gap-3 border-l-4 border-chili bg-chili/8 p-3">
-                      <span className="font-medium">Huỷ đơn {order.code}?</span>
-                      <button
-                        ref={confirmCancelRef}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => save({ status: "CANCELLED" }, "status")}
-                        className="min-h-11 sm:min-h-9 rounded-lg bg-chili px-4 font-semibold text-enamel disabled:opacity-60"
-                      >
-                        Xác nhận huỷ
-                      </button>
-                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 sm:min-h-9 rounded-lg px-3 font-medium hover:bg-ink/6">
-                        Không
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-
-            </div>
+            <StatusTrack status={order.status} />
 
             {editing ? (
               <OrderEditForm
@@ -286,35 +264,89 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               </>
             )}
 
-            <form
-              className="border-t border-ink/10 pt-4 sm:pt-5"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void save({ internalNote: note }, "note");
-              }}
-            >
-              <label htmlFor="internal-note" className="font-semibold">
-                Ghi chú nội bộ
-              </label>
-              <textarea
-                id="internal-note"
-                rows={3}
-                maxLength={1000}
-                value={note}
-                onChange={(e) => {
-                  setNote(e.target.value);
-                  setNotice(null);
+            {/* While the address and items are being edited, that form's buttons are the only ones. */}
+            {!editing ? (
+              <form
+                className="space-y-3 border-t border-ink/10 pt-4 sm:pt-5"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitOrder();
                 }}
-                className="mt-2 block h-[4.5rem] w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong sm:h-auto"
-              />
-              <button
-                type="submit"
-                disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-10 rounded-lg bg-ink px-4 sm:min-h-9 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
               >
-                {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
-              </button>
-            </form>
+                <div>
+                  <label htmlFor="order-status" className="font-semibold">
+                    Trạng thái
+                  </label>
+                  <select
+                    id="order-status"
+                    value={chosenStatus ?? order.status}
+                    disabled={busy || statusChoices(order.status).length === 1}
+                    onChange={(e) => {
+                      if (isOrderStatus(e.target.value)) setStatusChoice(e.target.value);
+                      setConfirmCancel(false);
+                      setNotice(null);
+                    }}
+                    className="mt-2 block min-h-10 w-full rounded-lg border border-ink/20 bg-surface px-3 focus:border-rim-strong disabled:opacity-60 sm:min-h-9 sm:text-sm"
+                  >
+                    {statusChoices(order.status).map((status) => (
+                      <option key={status} value={status}>
+                        {STATUS_LABELS[status]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="internal-note" className="font-semibold">
+                    Ghi chú nội bộ
+                  </label>
+                  <textarea
+                    id="internal-note"
+                    rows={3}
+                    maxLength={1000}
+                    value={note}
+                    onChange={(e) => {
+                      setNote(e.target.value);
+                      setNotice(null);
+                    }}
+                    className="mt-2 block h-[4.5rem] w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong sm:h-auto"
+                  />
+                </div>
+
+                {confirmCancel ? (
+                  <div className="flex flex-wrap items-center gap-2 border-l-4 border-chili bg-chili/8 p-3">
+                    <span className="mr-auto font-medium">Huỷ đơn {order.code}?</span>
+                    <button
+                      ref={confirmCancelRef}
+                      type="button"
+                      disabled={busy}
+                      onClick={() => submitOrder(true)}
+                      className="min-h-10 rounded-lg bg-chili px-4 text-[15px] font-semibold text-enamel disabled:opacity-60 sm:min-h-9 sm:text-sm"
+                    >
+                      Xác nhận huỷ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmCancel(false);
+                        setStatusChoice(order.status);
+                      }}
+                      className="min-h-10 rounded-lg px-3 text-[15px] font-medium hover:bg-ink/6 sm:min-h-9 sm:text-sm"
+                    >
+                      Không
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={busy || (!statusChanged && !noteChanged)}
+                    className="min-h-10 rounded-lg bg-rim px-5 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:bg-ink/15 disabled:text-ink/50 sm:min-h-9 sm:text-sm"
+                  >
+                    {saving === "order" ? "Đang lưu…" : "Lưu"}
+                  </button>
+                )}
+              </form>
+            ) : null}
           </>
         ) : null}
       </div>

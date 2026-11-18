@@ -16,13 +16,6 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   CANCELLED: "Đã huỷ",
 };
 
-/** Label of the button that moves an order to the given status. */
-export const ADVANCE_LABELS: Partial<Record<OrderStatus, string>> = {
-  CONFIRMED: "Xác nhận đơn",
-  DELIVERING: "Bắt đầu giao",
-  COMPLETED: "Hoàn thành",
-};
-
 export function nextStatus(from: OrderStatus): OrderStatus | null {
   return NEXT[from];
 }

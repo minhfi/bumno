@@ -24,7 +24,7 @@ function startRows(order: OrderDetail): Row[] {
 }
 
 const stepperClass =
-  "grid size-11 place-items-center rounded-lg border border-ink/20 bg-surface text-xl font-semibold hover:bg-ink/6 disabled:opacity-35";
+  "grid size-10 place-items-center rounded-lg border border-ink/20 bg-surface text-lg font-semibold hover:bg-ink/6 disabled:opacity-35 sm:size-9";
 
 /** Edit mode of the order drawer: address and item quantities. Saving is done by the parent. */
 export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
@@ -64,7 +64,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-6 border-t border-ink/10 pt-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-4 border-t border-ink/10 pt-4 sm:space-y-5 sm:pt-5">
       <div>
         <p className="text-lg font-semibold">{order.customerName}</p>
         <a href={`tel:${order.phone}`} className="inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
@@ -102,7 +102,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
         <legend id="edit-items-legend" tabIndex={-1} className="font-semibold">
           Món
         </legend>
-        <ul className="mt-3 space-y-3">
+        <ul className="mt-2 space-y-2">
           {rows.map((row) => (
             <li key={row.productId} className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -119,7 +119,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
                 >
                   <span aria-hidden>−</span>
                 </button>
-                <span className="w-8 text-center text-lg font-semibold tabular-nums">
+                <span className="w-7 text-center font-semibold tabular-nums">
                   {row.quantity}
                 </span>
                 <button
@@ -147,7 +147,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
         </p>
       </fieldset>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="submit"
           disabled={saving}

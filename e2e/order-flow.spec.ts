@@ -35,18 +35,21 @@ test.describe("order flow", () => {
     await expect(dialog).toContainText("Nguyễn Lan");
     await expect(dialog).toContainText("Phần thường × 2");
     await expect(dialog).toContainText("Ít hành");
-    await dialog.getByRole("button", { name: "Xác nhận đơn" }).click();
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã xác nhận" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await expect(dialog.getByText("Đã cập nhật")).toBeVisible();
     await expect(dialog.getByRole("listitem").and(dialog.locator("[aria-current=step]"))).toHaveText("Đã xác nhận");
 
     await dialog.getByLabel("Ghi chú nội bộ").fill("Đã gọi khách");
-    await dialog.getByRole("button", { name: "Lưu ghi chú" }).click();
-    await expect(dialog.getByRole("button", { name: "Lưu ghi chú" })).toBeDisabled();
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
+    await expect(dialog.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
 
-    await dialog.getByRole("button", { name: "Huỷ đơn" }).click();
+    // Cancelling asks first; nothing is saved until it is confirmed.
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã huỷ" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await dialog.getByRole("button", { name: "Xác nhận huỷ" }).click();
-    await expect(dialog.getByText("Đã huỷ")).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Huỷ đơn" })).toHaveCount(0);
+    await expect(dialog.getByText("Đã huỷ").first()).toBeVisible();
+    await expect(dialog.getByLabel("Trạng thái")).toBeDisabled();
 
     await dialog.getByRole("button", { name: "Đóng" }).click();
     await expect(page.getByRole("button", { name: `Xem đơn ${code}` })).toBeVisible();
@@ -106,7 +109,8 @@ test.describe("editing an order", () => {
     await expect(row).toContainText("60.000đ");
 
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
-    await dialog.getByRole("button", { name: "Huỷ đơn" }).click();
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã huỷ" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await dialog.getByRole("button", { name: "Xác nhận huỷ" }).click();
     await expect(dialog.getByText("Đã huỷ").first()).toBeVisible();
     await expect(dialog.getByRole("button", { name: "Sửa địa chỉ và món" })).toHaveCount(0);
