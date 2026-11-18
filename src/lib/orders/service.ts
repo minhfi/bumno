@@ -78,7 +78,8 @@ export async function listOrders({ range, status, q, page }: ListOrdersFilter): 
   const [rows, total] = await db.$transaction([
     db.order.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      // `number` breaks ties (orders placed in the same instant), so pages are stable and never overlap.
+      orderBy: [{ createdAt: "desc" }, { number: "desc" }],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
     }),

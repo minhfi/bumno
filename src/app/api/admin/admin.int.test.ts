@@ -136,6 +136,16 @@ describe("GET /api/admin/orders", () => {
     expect(page2.items).toHaveLength(3);
   });
 
+  it("orders placed at the same moment come newest code first, so pages never overlap or skip", async () => {
+    for (let i = 0; i < 25; i++) await seedOrder();
+    // Updating a row moves it in storage, which is what reordered ties before (orders whose status changed jumped ahead).
+    await db.order.updateMany({ where: { number: { lte: 1005 } }, data: { status: "CONFIRMED" } });
+    const page1 = await (await listOrders(req("/api/admin/orders"))).json();
+    const page2 = await (await listOrders(req("/api/admin/orders?page=2"))).json();
+    const codes = [...page1.items, ...page2.items].map((o: { code: string }) => o.code);
+    expect(codes).toEqual(Array.from({ length: 25 }, (_, i) => `BN-${1025 - i}`));
+  });
+
   it("400 for bad filters", async () => {
     expect((await listOrders(req("/api/admin/orders?date=2026-13-01"))).status).toBe(400);
     expect((await listOrders(req("/api/admin/orders?status=PAID"))).status).toBe(400);
