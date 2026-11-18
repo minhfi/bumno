@@ -70,7 +70,7 @@ export function AdminReports() {
       {error ? (
         <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
           <span>{data ? "Không làm mới được báo cáo. Đang hiện dữ liệu cũ." : error.message}</span>
-          <button type="button" onClick={() => void reload()} className="min-h-11 font-semibold underline underline-offset-4">
+          <button type="button" onClick={() => void reload()} className="min-h-11 font-semibold underline sm:min-h-9 underline-offset-4">
             Thử lại
           </button>
         </div>

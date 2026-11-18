@@ -74,7 +74,7 @@ export function AdminOrders() {
       {error ? (
         <div role="alert" className="mt-5 flex flex-wrap items-center justify-between gap-3 border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
           <span>{data ? "Không làm mới được danh sách. Đang hiện dữ liệu cũ." : error.message}</span>
-          <button type="button" onClick={() => void reload()} className="min-h-11 font-semibold underline underline-offset-4">
+          <button type="button" onClick={() => void reload()} className="min-h-11 font-semibold underline sm:min-h-9 underline-offset-4">
             Thử lại
           </button>
         </div>
@@ -102,7 +102,7 @@ export function AdminOrders() {
               <button
                 type="button"
                 onClick={() => setFilters(emptyAction.next)}
-                className="mt-4 min-h-11 rounded-lg bg-ink px-5 font-semibold text-enamel hover:bg-ink/85"
+                className="mt-4 min-h-11 rounded-lg sm:min-h-9 bg-ink px-5 font-semibold text-enamel hover:bg-ink/85"
               >
                 {emptyAction.label}
               </button>
@@ -128,7 +128,7 @@ export function AdminOrders() {
                 aria-disabled={filters.page <= 1}
                 onClick={() => filters.page > 1 && setFilters({ ...filters, page: filters.page - 1 })}
                 aria-label="Trang trước"
-                className="min-h-11 min-w-11 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
+                className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
               >
                 ‹
               </button>
@@ -140,7 +140,7 @@ export function AdminOrders() {
                 aria-disabled={filters.page >= totalPages}
                 onClick={() => filters.page < totalPages && setFilters({ ...filters, page: filters.page + 1 })}
                 aria-label="Trang sau"
-                className="min-h-11 min-w-11 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
+                className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
               >
                 ›
               </button>

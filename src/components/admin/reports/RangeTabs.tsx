@@ -18,7 +18,7 @@ export function RangeTabs({ value, onChange }: Props) {
           type="button"
           aria-pressed={value === range}
           onClick={() => onChange(range)}
-          className="min-h-11 shrink-0 rounded-full px-4 text-[15px] font-medium text-ink/75 hover:bg-ink/6 aria-pressed:bg-rim aria-pressed:text-on-rim"
+          className="min-h-11 shrink-0 rounded-full px-4 text-[15px] sm:min-h-9 sm:px-3.5 sm:text-sm font-medium text-ink/75 hover:bg-ink/6 aria-pressed:bg-rim aria-pressed:text-on-rim"
         >
           {label}
         </button>

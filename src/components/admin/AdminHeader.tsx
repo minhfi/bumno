@@ -32,13 +32,13 @@ export function AdminHeader({ title }: { title: string }) {
             key={href}
             href={href}
             aria-current={pathname.startsWith(href) ? "page" : undefined}
-            className="inline-flex min-h-11 items-center rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:underline aria-[current=page]:decoration-rim aria-[current=page]:decoration-[3px] aria-[current=page]:underline-offset-8"
+            className="inline-flex min-h-11 sm:min-h-9 items-center rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:underline aria-[current=page]:decoration-rim aria-[current=page]:decoration-[3px] aria-[current=page]:underline-offset-8"
           >
             {label}
           </Link>
         ))}
       </nav>
-      <button type="button" onClick={logout} className="min-h-11 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink">
+      <button type="button" onClick={logout} className="min-h-11 sm:min-h-9 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink">
         Đăng xuất
       </button>
     </header>

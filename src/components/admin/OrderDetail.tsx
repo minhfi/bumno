@@ -156,7 +156,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
-          className="min-h-11 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink"
+          className="min-h-11 sm:min-h-9 rounded-lg px-3 font-medium text-ink/70 hover:bg-ink/6 hover:text-ink"
         >
           Đóng
         </button>
@@ -167,7 +167,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         {load.status === "error" ? (
           <div role="alert" className="border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
             <p>{load.message}</p>
-            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 min-h-11 font-semibold underline underline-offset-4">
+            <button type="button" onClick={() => setAttempt((n) => n + 1)} className="mt-2 min-h-11 sm:min-h-9 font-semibold underline underline-offset-4">
               Thử lại
             </button>
           </div>
@@ -185,7 +185,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       disabled={busy}
                       onClick={() => save({ status: next }, "status")}
-                      className="min-h-12 flex-1 rounded-lg bg-rim px-5 text-lg font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
+                      className="min-h-12 flex-1 rounded-lg bg-rim px-5 text-lg sm:min-h-10 sm:text-base font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
                     >
                       {saving === "status" ? "Đang lưu…" : nextLabel}
                     </button>
@@ -195,7 +195,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       disabled={busy}
                       onClick={() => setConfirmCancel(true)}
-                      className="min-h-12 rounded-lg px-4 font-semibold text-chili hover:bg-chili/8 disabled:opacity-60"
+                      className="min-h-12 rounded-lg px-4 font-semibold text-chili sm:min-h-10 hover:bg-chili/8 disabled:opacity-60"
                     >
                       Huỷ đơn
                     </button>
@@ -208,11 +208,11 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                         type="button"
                         disabled={busy}
                         onClick={() => save({ status: "CANCELLED" }, "status")}
-                        className="min-h-11 rounded-lg bg-chili px-4 font-semibold text-enamel disabled:opacity-60"
+                        className="min-h-11 sm:min-h-9 rounded-lg bg-chili px-4 font-semibold text-enamel disabled:opacity-60"
                       >
                         Xác nhận huỷ
                       </button>
-                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 rounded-lg px-3 font-medium hover:bg-ink/6">
+                      <button type="button" onClick={() => setConfirmCancel(false)} className="min-h-11 sm:min-h-9 rounded-lg px-3 font-medium hover:bg-ink/6">
                         Không
                       </button>
                     </div>
@@ -256,7 +256,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                         setActionError(null);
                         setConfirmCancel(false);
                       }}
-                      className="mt-4 min-h-11 rounded-lg border border-ink/20 px-4 font-semibold hover:bg-ink/6"
+                      className="mt-4 min-h-11 sm:min-h-9 rounded-lg border border-ink/20 px-4 font-semibold hover:bg-ink/6"
                     >
                       Sửa địa chỉ và món
                     </button>
@@ -311,7 +311,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               <button
                 type="submit"
                 disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-11 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
+                className="mt-2 min-h-11 sm:min-h-9 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
               >
                 {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
               </button>
