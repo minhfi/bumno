@@ -122,7 +122,7 @@ export function AdminOrders() {
                 ))}
               </ul>
             </div>
-            <nav aria-label="Phân trang" className="mt-5 flex items-center justify-center gap-4 tabular-nums">
+            <nav aria-label="Phân trang" className="mt-3 flex items-center justify-center gap-4 tabular-nums sm:mt-5">
               <button
                 type="button"
                 aria-disabled={filters.page <= 1}
