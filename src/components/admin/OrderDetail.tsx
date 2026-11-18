@@ -131,19 +131,19 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       aria-labelledby="order-detail-title"
       className="m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto scroll-pt-24 overscroll-contain bg-enamel p-0 text-ink backdrop:bg-ink/45 sm:border-l-4 sm:border-rim"
     >
-      <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-5 pb-4 pt-5">
+      <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-ink/10 bg-enamel px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
         <div>
           <h2
             ref={titleRef}
             tabIndex={-1}
             id="order-detail-title"
-            className="font-display text-[32px] font-extrabold leading-none tracking-wide focus:outline-none"
+            className="font-display text-[26px] font-extrabold sm:text-[32px] leading-none tracking-wide focus:outline-none"
           >
             <span className="sr-only">Đơn </span>
             {code}
           </h2>
           {order ? (
-            <p className="mt-1.5 text-[15px] text-ink/75 tabular-nums">
+            <p className="mt-1 text-[15px] text-ink/75 tabular-nums sm:mt-1.5">
               Nhận <span className="font-semibold text-ink">{formatSlot(order.deliverySlot)} {slotDayLabel(order.deliverySlot, new Date())}</span>
               , đặt lúc {formatSlot(order.createdAt)}
             </p>
@@ -162,7 +162,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
         </button>
       </div>
 
-      <div className="space-y-7 px-5 py-6">
+      <div className="space-y-5 px-4 py-4 sm:space-y-7 sm:px-5 sm:py-6">
         {load.status === "loading" ? <p role="status" className="text-ink/70">Đang tải đơn…</p> : null}
         {load.status === "error" ? (
           <div role="alert" className="border-l-4 border-chili bg-chili/8 px-4 py-3 text-chili">
@@ -175,7 +175,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
 
         {order ? (
           <>
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               <StatusTrack status={order.status} />
 
               {next || canCancel(order.status) ? (
@@ -185,7 +185,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       disabled={busy}
                       onClick={() => save({ status: next }, "status")}
-                      className="min-h-12 flex-1 rounded-lg bg-rim px-5 text-lg sm:min-h-10 sm:text-base font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
+                      className="min-h-11 flex-1 rounded-lg bg-rim px-5 text-lg sm:min-h-10 sm:text-base font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
                     >
                       {saving === "status" ? "Đang lưu…" : nextLabel}
                     </button>
@@ -195,7 +195,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       disabled={busy}
                       onClick={() => setConfirmCancel(true)}
-                      className="min-h-12 rounded-lg px-4 font-semibold text-chili sm:min-h-10 hover:bg-chili/8 disabled:opacity-60"
+                      className="min-h-11 rounded-lg px-4 font-semibold text-chili sm:min-h-10 hover:bg-chili/8 disabled:opacity-60"
                     >
                       Huỷ đơn
                     </button>
@@ -234,7 +234,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               />
             ) : (
               <>
-                <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-5">
+                <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-4 sm:pt-5">
                   <h3 id="customer-title" className="sr-only">Khách hàng</h3>
                   <p className="text-lg font-semibold">{order.customerName}</p>
                   <a href={`tel:${order.phone}`} className="mt-0.5 inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
@@ -256,16 +256,16 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                         setActionError(null);
                         setConfirmCancel(false);
                       }}
-                      className="mt-4 min-h-11 sm:min-h-9 rounded-lg border border-ink/20 px-4 font-semibold hover:bg-ink/6"
+                      className="mt-3 min-h-10 rounded-lg border sm:mt-4 sm:min-h-9 border-ink/20 px-4 font-semibold hover:bg-ink/6"
                     >
                       Sửa địa chỉ và món
                     </button>
                   ) : null}
                 </section>
 
-                <section aria-labelledby="items-title" className="border-t border-ink/10 pt-5">
+                <section aria-labelledby="items-title" className="border-t border-ink/10 pt-4 sm:pt-5">
                   <h3 id="items-title" className="font-semibold">Món</h3>
-                  <ul className="mt-3 space-y-2 tabular-nums">
+                  <ul className="mt-2 space-y-1.5 tabular-nums sm:mt-3 sm:space-y-2">
                     {order.items.map((item) => (
                       <li key={item.productId} className="flex items-baseline gap-2">
                         <span>
@@ -276,7 +276,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 flex items-baseline gap-2 border-t border-ink/10 pt-3">
+                  <p className="mt-2 flex items-baseline gap-2 border-t border-ink/10 pt-2 sm:mt-3 sm:pt-3">
                     <span className="font-semibold">Tổng</span>
                     <span aria-hidden className="flex-1" />
                     <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(order.total)}</span>
@@ -287,7 +287,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
             )}
 
             <form
-              className="border-t border-ink/10 pt-5"
+              className="border-t border-ink/10 pt-4 sm:pt-5"
               onSubmit={(event) => {
                 event.preventDefault();
                 void save({ internalNote: note }, "note");
@@ -306,12 +306,12 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                   setNote(e.target.value);
                   setNotice(null);
                 }}
-                className="mt-2 block w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong"
+                className="mt-2 block h-[4.5rem] w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong sm:h-auto"
               />
               <button
                 type="submit"
                 disabled={busy || note === (order.internalNote ?? "")}
-                className="mt-2 min-h-11 sm:min-h-9 rounded-lg bg-ink px-4 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
+                className="mt-2 min-h-10 rounded-lg bg-ink px-4 sm:min-h-9 font-semibold text-enamel hover:bg-ink/85 disabled:bg-ink/25 disabled:text-ink/60"
               >
                 {saving === "note" ? "Đang lưu…" : "Lưu ghi chú"}
               </button>
