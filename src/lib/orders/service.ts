@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { formatOrderCode, parseOrderCode } from "./code";
 import { priceOrder, repriceOrder } from "./pricing";
 import type { CreateOrderData, UpdateOrderData } from "./schema";
-import { canEdit, canTransition } from "./status";
+import { canChangeShippingFee, canEdit, canTransition } from "./status";
 import type { OrderDetail, OrderListResponse, OrderStatus, OrderSummary } from "./types";
 
 export const PAGE_SIZE = 20;
@@ -30,6 +30,7 @@ function toDetail(order: OrderWithItems): OrderDetail {
     address: order.address,
     note: order.note,
     internalNote: order.internalNote,
+    shippingFee: order.shippingFee,
     items: order.items.map(({ productId, name, unitPrice, quantity }) => ({ productId, name, unitPrice, quantity })),
     updatedAt: order.updatedAt.toISOString(),
   };
@@ -112,9 +113,22 @@ export async function updateOrder(code: string, changes: UpdateOrderData): Promi
       return { ok: false, reason: "INVALID_TRANSITION", from: current.status } as const;
     }
     if (editing && !canEdit(current.status)) return { ok: false, reason: "NOT_EDITABLE", from: current.status } as const;
+    // Checked against the status before this change, so a fee can be saved together with completing the order.
+    const changingFee = changes.shippingFee !== undefined && changes.shippingFee !== current.shippingFee;
+    if (changingFee && !canChangeShippingFee(current.status)) {
+      return { ok: false, reason: "NOT_EDITABLE", from: current.status } as const;
+    }
 
     const repriced = changes.items ? repriceOrder(current.items, changes.items) : null;
     if (repriced && !repriced.ok) return { ok: false, reason: "UNKNOWN_PRODUCT" } as const;
+
+    // `total` is always items + shipping fee.
+    const shippingFee = changes.shippingFee ?? current.shippingFee;
+    const total = repriced
+      ? repriced.total + shippingFee
+      : changingFee
+        ? current.total - current.shippingFee + shippingFee
+        : undefined;
 
     // The status condition makes a concurrent change of the same order fail instead of skipping a rule.
     const updated = await tx.order.updateMany({
@@ -123,13 +137,16 @@ export async function updateOrder(code: string, changes: UpdateOrderData): Promi
         ...(changes.status !== undefined ? { status: changes.status } : {}),
         ...(changes.internalNote !== undefined ? { internalNote: changes.internalNote || null } : {}),
         ...(changes.address !== undefined ? { address: changes.address } : {}),
-        ...(repriced ? { total: repriced.total } : {}),
+        ...(changingFee ? { shippingFee } : {}),
+        ...(total !== undefined ? { total } : {}),
       },
     });
     if (updated.count === 0) {
       // Lost a race with another change: report the status the order has now, not the one read before.
       const latest = await tx.order.findUnique({ where: { number }, select: { status: true } });
-      return { ok: false, reason: editing ? "NOT_EDITABLE" : "INVALID_TRANSITION", from: latest?.status ?? current.status } as const;
+      const from = latest?.status ?? current.status;
+      const notEditable = editing || (changingFee && !canChangeShippingFee(from));
+      return { ok: false, reason: notEditable ? "NOT_EDITABLE" : "INVALID_TRANSITION", from } as const;
     }
     if (repriced) {
       await tx.orderItem.deleteMany({ where: { orderId: current.id } });

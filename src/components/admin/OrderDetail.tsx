@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { formatVnd } from "@/config/menu";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
 import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
-import { canCancel, canEdit, isOrderStatus, laterStatuses, STATUS_LABELS } from "@/lib/orders/status";
+import { MAX_SHIPPING_FEE } from "@/lib/orders/schema";
+import { canCancel, canChangeShippingFee, canEdit, isOrderStatus, laterStatuses, STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData, OrderStatus } from "@/lib/orders/types";
 import { OrderEditForm, type OrderEdit } from "./OrderEditForm";
 
@@ -20,9 +21,27 @@ function statusChoices(status: OrderStatus): OrderStatus[] {
   return [status, ...laterStatuses(status), ...(canCancel(status) ? (["CANCELLED"] as const) : [])];
 }
 
+const feeFormat = new Intl.NumberFormat("vi-VN");
+
+/** Digits typed into the fee field, with thousands separators; empty stays empty. */
+function formatFeeInput(value: string): string {
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7);
+  return digits === "" ? "" : feeFormat.format(Number(digits));
+}
+
+/** Empty means 0. */
+function parseFeeInput(value: string): number {
+  const digits = value.replace(/\D/g, "");
+  return digits === "" ? 0 : Number(digits);
+}
+
+const feeText = (fee: number) => (fee > 0 ? feeFormat.format(fee) : "");
+
+type OrderChanges = { status?: OrderStatus; internalNote?: string; shippingFee?: number };
+
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; order: OrderDetailData };
 
-/** Order detail in a modal dialog: status, customer, items, and one form for the status and the internal note. */
+/** Order detail in a modal dialog: status, customer, items, and one form for the status, shipping fee and internal note. */
 export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -34,6 +53,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [note, setNote] = useState("");
+  const [fee, setFee] = useState("");
   const [statusChoice, setStatusChoice] = useState<OrderStatus | null>(null);
 
   useEffect(() => {
@@ -47,6 +67,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       .then((order) => {
         setLoad({ status: "ready", order });
         setNote(order.internalNote ?? "");
+        setFee(feeText(order.shippingFee));
         setStatusChoice(order.status);
       })
       .catch((error: unknown) => {
@@ -61,7 +82,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
     if (confirmCancel) confirmCancelRef.current?.focus();
   }, [confirmCancel]);
 
-  async function save(changes: { status?: OrderStatus; internalNote?: string } | OrderEdit, kind: "order" | "edit") {
+  async function save(changes: OrderChanges | OrderEdit, kind: "order" | "edit") {
     setSaving(kind);
     setActionError(null);
     try {
@@ -71,6 +92,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       });
       setLoad({ status: "ready", order });
       setNote(order.internalNote ?? "");
+      setFee(feeText(order.shippingFee));
       setStatusChoice(order.status);
       setConfirmCancel(false);
       setEditing(false);
@@ -95,15 +117,26 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   const chosenStatus = statusChoice ?? order?.status ?? null;
   const statusChanged = order !== null && chosenStatus !== null && chosenStatus !== order.status;
   const noteChanged = order !== null && note !== (order.internalNote ?? "");
+  const feeValue = parseFeeInput(fee);
+  const feeChanged = order !== null && feeValue !== order.shippingFee;
+  const feeTooLarge = feeValue > MAX_SHIPPING_FEE;
+  const changed = statusChanged || noteChanged || feeChanged;
 
-  /** Saves the status and the note in one request; moving to "Đã huỷ" asks first. */
+  /** Saves the status, shipping fee and note in one request; moving to "Đã huỷ" asks first. */
   function submitOrder(confirmed = false) {
-    if (!order || !chosenStatus || (!statusChanged && !noteChanged)) return;
+    if (!order || !chosenStatus || !changed || feeTooLarge) return;
     if (statusChanged && chosenStatus === "CANCELLED" && !confirmed) {
       setConfirmCancel(true);
       return;
     }
-    void save({ ...(statusChanged ? { status: chosenStatus } : {}), ...(noteChanged ? { internalNote: note } : {}) }, "order");
+    void save(
+      {
+        ...(statusChanged ? { status: chosenStatus } : {}),
+        ...(feeChanged ? { shippingFee: feeValue } : {}),
+        ...(noteChanged ? { internalNote: note } : {}),
+      },
+      "order",
+    );
   }
 
   return (
@@ -212,6 +245,13 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       </li>
                     ))}
                   </ul>
+                  {order.shippingFee > 0 ? (
+                    <p className="mt-1.5 flex items-baseline gap-2 tabular-nums sm:mt-2">
+                      <span>Phí ship</span>
+                      <span aria-hidden className="mb-1 flex-1 border-b-2 border-dotted border-ink/20" />
+                      <span>{formatVnd(order.shippingFee)}</span>
+                    </p>
+                  ) : null}
                   <p className="mt-2 flex items-baseline gap-2 border-t border-ink/10 pt-2 sm:mt-3 sm:pt-3">
                     <span className="font-semibold">Tổng</span>
                     <span aria-hidden className="flex-1" />
@@ -251,6 +291,36 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label htmlFor="shipping-fee" className="font-semibold">
+                    Phí ship<span className="sr-only"> (đồng)</span>
+                  </label>
+                  <div className="relative mt-2">
+                    <input
+                      id="shipping-fee"
+                      name="shippingFee"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="0"
+                      value={fee}
+                      disabled={busy || !canChangeShippingFee(order.status)}
+                      aria-invalid={feeTooLarge || undefined}
+                      aria-describedby={feeTooLarge ? "shipping-fee-error" : undefined}
+                      onChange={(e) => setFee(formatFeeInput(e.target.value))}
+                      className="block min-h-10 w-full rounded-lg border border-ink/20 bg-surface py-0 pl-3 pr-8 tabular-nums focus:border-rim-strong disabled:opacity-60 aria-invalid:border-chili sm:min-h-9 sm:text-sm"
+                    />
+                    <span aria-hidden className="pointer-events-none absolute inset-y-0 right-3 grid place-items-center text-ink/65 sm:text-sm">
+                      đ
+                    </span>
+                  </div>
+                  {feeTooLarge ? (
+                    <p id="shipping-fee-error" role="alert" className="mt-1 text-sm font-medium text-chili">
+                      Phí ship tối đa {formatVnd(MAX_SHIPPING_FEE)}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -295,7 +365,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                 ) : (
                   <button
                     type="submit"
-                    disabled={busy || (!statusChanged && !noteChanged)}
+                    disabled={busy || !changed || feeTooLarge}
                     className="min-h-10 rounded-lg bg-rim px-5 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:bg-ink/15 disabled:text-ink/50 sm:min-h-9 sm:text-sm"
                   >
                     {saving === "order" ? "Đang lưu…" : "Lưu"}

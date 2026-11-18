@@ -90,7 +90,7 @@ export function AdminReports() {
             ) : (
               <>
                 <RevenueChart key={data.range} bucket={data.bucket} series={data.series} />
-                <TopItems items={data.items} />
+                <TopItems items={data.items} shippingTotal={data.current.shippingTotal} revenue={data.current.revenue} />
               </>
             )}
           </div>

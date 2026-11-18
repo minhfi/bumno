@@ -14,6 +14,7 @@ export type OrderSummary = {
   customerName: string;
   phone: string;
   deliverySlot: string;
+  /** Items + shipping fee, VND. */
   total: number;
   status: OrderStatus;
 };
@@ -22,6 +23,8 @@ export type OrderDetail = OrderSummary & {
   address: string;
   note: string | null;
   internalNote: string | null;
+  /** VND, included in `total`. */
+  shippingFee: number;
   items: OrderLine[];
   updatedAt: string;
 };

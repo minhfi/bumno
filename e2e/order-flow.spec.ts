@@ -116,6 +116,39 @@ test.describe("editing an order", () => {
     await expect(dialog.getByRole("button", { name: "Sửa địa chỉ và món" })).toHaveCount(0);
   });
 
+  test("admin sets a shipping fee; the total in the drawer and the list includes it; locked once completed", async ({ page, request }, testInfo) => {
+    await page.clock.setFixedTime(vnTime("07:00"));
+    const ip = `10.9.3.${testInfo.project.name === "mobile" ? 1 : 2}`;
+    const { code } = await createOrderViaApi(request, ip, `Khách ship ${testInfo.project.name}`); // 50.000đ
+    await login(page);
+    await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
+    const dialog = page.getByRole("dialog", { name: `Đơn ${code}` });
+    const fee = dialog.getByLabel("Phí ship");
+    await expect(fee).toHaveValue("");
+    await expect(dialog.getByText("Phí ship", { exact: true })).toHaveCount(0);
+
+    await fee.fill("15000");
+    await expect(fee).toHaveValue("15.000");
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đang giao" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
+    await expect(dialog.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("DELIVERING");
+    await expect(fee).toHaveValue("15.000");
+    const items = dialog.getByRole("region", { name: "Món" });
+    await expect(items).toContainText(/Phí ship\s*15\.000đ/);
+    await expect(items).toContainText(/Tổng\s*65\.000đ/);
+
+    await dialog.getByRole("button", { name: "Đóng" }).click();
+    const row = page.locator("tr, li").filter({ has: page.getByRole("button", { name: `Xem đơn ${code}` }) }).filter({ visible: true });
+    await expect(row).toContainText("65.000đ");
+
+    await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Hoàn thành" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("COMPLETED");
+    await expect(fee).toBeDisabled();
+  });
+
   test("saving with no items shows an error and keeps the form open", async ({ page, request }, testInfo) => {
     await page.clock.setFixedTime(vnTime("07:00"));
     const ip = `10.9.2.${testInfo.project.name === "mobile" ? 1 : 2}`;

@@ -35,7 +35,9 @@ export const PATCH = withErrorHandling("PATCH /api/admin/orders/:code", async (r
   }
   const from = result.from ? STATUS_LABELS[result.from] : "hiện tại";
   if (result.reason === "NOT_EDITABLE") {
-    return errorResponse(409, "NOT_EDITABLE", `Đơn đang ở trạng thái "${from}" nên không sửa địa chỉ hoặc món được nữa`);
+    const editingLines = parsed.data.address !== undefined || parsed.data.items !== undefined;
+    const what = editingLines ? "sửa địa chỉ hoặc món" : "đổi phí ship";
+    return errorResponse(409, "NOT_EDITABLE", `Đơn đang ở trạng thái "${from}" nên không ${what} được nữa`);
   }
   return errorResponse(409, "INVALID_TRANSITION", `Không thể chuyển đơn từ trạng thái "${from}" sang trạng thái này`);
 });

@@ -4,6 +4,7 @@ import { ORDER_STATUSES } from "./types";
 
 export const MAX_QUANTITY = 20;
 export const MAX_ADDRESS_LENGTH = 300;
+export const MAX_SHIPPING_FEE = 1_000_000;
 /** Most distinct lines an edited order can carry (menu items plus legacy lines). */
 const MAX_ORDER_LINES = 20;
 
@@ -88,6 +89,12 @@ export const updateOrderSchema = z
   .object({
     status: orderStatusSchema.optional(),
     internalNote: z.string().trim().max(1000, "Ghi chú tối đa 1000 ký tự").optional(),
+    shippingFee: z
+      .number({ error: "Phí ship không hợp lệ" })
+      .int("Phí ship không hợp lệ")
+      .min(0, "Phí ship không hợp lệ")
+      .max(MAX_SHIPPING_FEE, "Phí ship tối đa 1.000.000 đ")
+      .optional(),
     address: addressSchema.optional(),
     items: z
       .array(editItemSchema, { error: "Chọn ít nhất 1 món" })
@@ -98,12 +105,20 @@ export const updateOrderSchema = z
   })
   .refine(
     (body) =>
-      body.status !== undefined || body.internalNote !== undefined || body.address !== undefined || body.items !== undefined,
+      body.status !== undefined ||
+      body.internalNote !== undefined ||
+      body.shippingFee !== undefined ||
+      body.address !== undefined ||
+      body.items !== undefined,
     "Cần ít nhất 1 trường để cập nhật",
   )
   .refine(
     (body) => body.status === undefined || (body.address === undefined && body.items === undefined),
     { message: "Không đổi trạng thái cùng lúc với địa chỉ hoặc món", path: ["status"] },
+  )
+  .refine(
+    (body) => body.shippingFee === undefined || (body.address === undefined && body.items === undefined),
+    { message: "Không đổi phí ship cùng lúc với địa chỉ hoặc món", path: ["shippingFee"] },
   );
 
 export type UpdateOrderData = z.output<typeof updateOrderSchema>;

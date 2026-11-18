@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canCancel, canEdit, canTransition, laterStatuses, nextStatus } from "./status";
+import { canCancel, canChangeShippingFee, canEdit, canTransition, laterStatuses, nextStatus } from "./status";
 import { ORDER_STATUSES, type OrderStatus } from "./types";
 
 describe("status transitions", () => {
@@ -39,5 +39,10 @@ describe("status transitions", () => {
   it("can edit the address and items only before delivery", () => {
     const editable: OrderStatus[] = ["NEW", "CONFIRMED"];
     for (const status of ORDER_STATUSES) expect(canEdit(status), status).toBe(editable.includes(status));
+  });
+
+  it("allows changing the shipping fee until the order is completed or cancelled", () => {
+    const allowed = ORDER_STATUSES.filter(canChangeShippingFee);
+    expect(allowed).toEqual(["NEW", "CONFIRMED", "DELIVERING"]);
   });
 });

@@ -18,7 +18,7 @@ const regular = (quantity = 1): Line => ({ productId: "phan-thuong", name: "Ph�
 const special = (quantity = 1): Line => ({ productId: "phan-dac-biet", name: "Phần đặc biệt", unitPrice: 50_000, quantity });
 const extraBanh = (quantity = 1): Line => ({ productId: "them-banh", name: "Thêm bánh", unitPrice: 10_000, quantity });
 
-async function seedOrder(slot: string, status: Status, lines: Line[] = [regular()]) {
+async function seedOrder(slot: string, status: Status, lines: Line[] = [regular()], shippingFee = 0) {
   return db.order.create({
     data: {
       customerName: "Khách",
@@ -26,7 +26,8 @@ async function seedOrder(slot: string, status: Status, lines: Line[] = [regular(
       address: "1 Đường A",
       deliverySlot: vn(slot),
       status,
-      total: lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
+      shippingFee,
+      total: lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0) + shippingFee,
       items: { create: lines },
     },
   });
@@ -73,7 +74,14 @@ describe("GET /api/admin/reports", () => {
     expect(data.bucket).toBe("hour");
     expect(data.from).toBe(vn("2026-11-17T00:00").toISOString());
     expect(data.to).toBe(vn("2026-11-18T00:00").toISOString());
-    expect(data.current).toEqual({ revenue: 0, completedOrders: 0, averageOrderValue: 0, cancelledOrders: 0, cancelRate: 0 });
+    expect(data.current).toEqual({
+      revenue: 0,
+      shippingTotal: 0,
+      completedOrders: 0,
+      averageOrderValue: 0,
+      cancelledOrders: 0,
+      cancelRate: 0,
+    });
     expect(data.pending).toEqual({ orders: 0, total: 0 });
     expect(data.series).toHaveLength(14);
     expect(data.series.every((point) => point.revenue === 0 && point.completedOrders === 0)).toBe(true);
@@ -93,6 +101,7 @@ describe("GET /api/admin/reports", () => {
     const data = await report("today");
     expect(data.current).toEqual({
       revenue: 155_000,
+      shippingTotal: 0,
       completedOrders: 3,
       averageOrderValue: 51_667,
       cancelledOrders: 1,
@@ -120,7 +129,14 @@ describe("GET /api/admin/reports", () => {
     expect(data.series[0]).toEqual({ start: vn("2026-11-11T00:00").toISOString(), revenue: 35_000, completedOrders: 1 });
     expect(data.series[6].revenue).toBe(50_000);
     expect(data.current.revenue).toBe(85_000);
-    expect(data.previous).toEqual({ revenue: 100_000, completedOrders: 1, averageOrderValue: 100_000, cancelledOrders: 1, cancelRate: 0.5 });
+    expect(data.previous).toEqual({
+      revenue: 100_000,
+      shippingTotal: 0,
+      completedOrders: 1,
+      averageOrderValue: 100_000,
+      cancelledOrders: 1,
+      cancelRate: 0.5,
+    });
   });
 
   it("30d: one bucket per day", async () => {
@@ -165,5 +181,24 @@ describe("GET /api/admin/reports", () => {
     expect(data.items.reduce((sum, item) => sum + item.revenue, 0)).toBe(data.current.revenue);
     expect(data.items.reduce((sum, item) => sum + item.share, 0)).toBeCloseTo(1);
     expect(data.items[0].share).toBeCloseTo(105_000 / 205_000);
+  });
+
+  it("shipping fees: in revenue, average and pending; dish revenue plus fees adds up to revenue", async () => {
+    await seedOrder("2026-11-17T06:00", "COMPLETED", [regular(2)], 15_000); // 70k + 15k
+    await seedOrder("2026-11-17T07:00", "COMPLETED", [special()], 0); // 50k
+    await seedOrder("2026-11-17T08:00", "DELIVERING", [regular()], 20_000); // pending 35k + 20k
+    await seedOrder("2026-11-17T09:00", "CANCELLED", [regular()], 10_000); // not counted
+
+    const data = await report("today");
+    expect(data.current).toMatchObject({ revenue: 135_000, shippingTotal: 15_000, completedOrders: 2, averageOrderValue: 67_500 });
+    expect(data.pending).toEqual({ orders: 1, total: 55_000 });
+    expect(data.series.reduce((sum, p) => sum + p.revenue, 0)).toBe(135_000);
+    expect(data.items.map((item) => [item.productId, item.revenue])).toEqual([
+      ["phan-thuong", 70_000],
+      ["phan-dac-biet", 50_000],
+    ]);
+    const dishRevenue = data.items.reduce((sum, item) => sum + item.revenue, 0);
+    expect(dishRevenue + data.current.shippingTotal).toBe(data.current.revenue);
+    expect(data.previous.shippingTotal).toBe(0);
   });
 });

@@ -301,6 +301,72 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
     });
   });
 
+  describe("shipping fee", () => {
+    const patch = (body: unknown, code = "BN-1001") =>
+      patchOrder(req(`/api/admin/orders/${code}`, { method: "PATCH", body }), ctx(code));
+    const stored = (number = 1001) => db.order.findUniqueOrThrow({ where: { number } });
+
+    it("defaults to 0 and is included in the detail", async () => {
+      await seedOrder();
+      const order = await (await getOrder(req("/api/admin/orders/BN-1001"), ctx("BN-1001"))).json();
+      expect(order).toMatchObject({ shippingFee: 0, total: 35_000 });
+    });
+
+    it("sets and changes the fee; the total is items + fee in the detail and the list", async () => {
+      await seedOrder();
+      const set = await patch({ shippingFee: 15_000 });
+      expect(set.status).toBe(200);
+      expect(await set.json()).toMatchObject({ shippingFee: 15_000, total: 50_000 });
+      expect(await (await patch({ shippingFee: 20_000 })).json()).toMatchObject({ shippingFee: 20_000, total: 55_000 });
+      expect(await stored()).toMatchObject({ shippingFee: 20_000, total: 55_000 });
+      const list = await (await listOrders(req("/api/admin/orders"))).json();
+      expect(list.items[0]).toMatchObject({ code: "BN-1001", total: 55_000 });
+      expect(await (await patch({ shippingFee: 0 })).json()).toMatchObject({ shippingFee: 0, total: 35_000 });
+    });
+
+    it("saves the fee together with a status change and the note, checked against the status before the save", async () => {
+      await seedOrder({ status: "DELIVERING" });
+      const response = await patch({ status: "COMPLETED", shippingFee: 15_000, internalNote: "Ship xa" });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({ status: "COMPLETED", shippingFee: 15_000, total: 50_000, internalNote: "Ship xa" });
+    });
+
+    it("keeps the fee when items are edited", async () => {
+      await seedOrder();
+      await patch({ shippingFee: 15_000 });
+      const response = await patch({ items: [{ productId: "phan-thuong", quantity: 2 }] });
+      expect(await response.json()).toMatchObject({ shippingFee: 15_000, total: 85_000 });
+    });
+
+    it("409 NOT_EDITABLE for completed or cancelled orders; the order stays untouched", async () => {
+      for (const [index, status] of (["COMPLETED", "CANCELLED"] as const).entries()) {
+        await seedOrder({ status });
+        const response = await patch({ shippingFee: 15_000 }, `BN-${1001 + index}`);
+        expect(response.status, status).toBe(409);
+        const body = await response.json();
+        expect(body.error.code).toBe("NOT_EDITABLE");
+        expect(body.error.message).toContain("phí ship");
+        expect(await stored(1001 + index)).toMatchObject({ shippingFee: 0, total: 35_000, status });
+      }
+    });
+
+    it("400 for a negative, too large or non-integer fee, or one combined with an edit", async () => {
+      await seedOrder();
+      for (const body of [
+        { shippingFee: -1 },
+        { shippingFee: 1_000_001 },
+        { shippingFee: 1.5 },
+        { shippingFee: "15000" },
+        { shippingFee: 15_000, address: "99 Nguyễn Huệ, Quận 1" },
+      ]) {
+        const response = await patch(body);
+        expect(response.status, JSON.stringify(body)).toBe(400);
+        expect((await response.json()).error.fields.shippingFee, JSON.stringify(body)).toBeDefined();
+      }
+      expect(await stored()).toMatchObject({ shippingFee: 0, total: 35_000, address: "1 Đường A" });
+    });
+  });
+
   it("400 for an empty or invalid body, 404 for unknown code, 401 without session", async () => {
     await seedOrder();
     expect((await patchOrder(req("/api/admin/orders/BN-1001", { method: "PATCH", body: {} }), ctx("BN-1001"))).status).toBe(400);

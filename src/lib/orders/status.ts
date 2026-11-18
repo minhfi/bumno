@@ -42,6 +42,11 @@ export function canEdit(from: OrderStatus): boolean {
   return from === "NEW" || from === "CONFIRMED";
 }
 
+/** The shipping fee can change until the order is final (completed or cancelled). */
+export function canChangeShippingFee(from: OrderStatus): boolean {
+  return NEXT[from] !== null;
+}
+
 export function isOrderStatus(value: string): value is OrderStatus {
   return (ORDER_STATUSES as readonly string[]).includes(value);
 }

@@ -3,8 +3,10 @@ export type ReportRange = (typeof REPORT_RANGES)[number];
 export type ReportBucket = "hour" | "day" | "month";
 
 export type ReportSummary = {
-  /** Sum of `total` of COMPLETED orders, VND. */
+  /** Sum of `total` of COMPLETED orders (items + shipping fees), VND. */
   revenue: number;
+  /** Sum of `shippingFee` of COMPLETED orders, VND; part of `revenue`. */
+  shippingTotal: number;
   completedOrders: number;
   /** revenue / completedOrders, rounded; 0 when there are no completed orders. */
   averageOrderValue: number;
@@ -21,7 +23,7 @@ export type ReportItem = {
   addon: boolean;
   quantity: number;
   revenue: number;
-  /** Share of `current.revenue`, 0..1. */
+  /** Item revenue only (no shipping fee). Share of `current.revenue`, 0..1. */
   share: number;
 };
 

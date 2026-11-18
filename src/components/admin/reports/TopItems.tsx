@@ -15,8 +15,16 @@ function ShareBar({ share }: { share: number }) {
   );
 }
 
+type Props = {
+  items: ReportItem[];
+  /** Shipping fees of the same orders, shown as a last line so the rows add up to `revenue`. */
+  shippingTotal: number;
+  revenue: number;
+};
+
 /** Dishes of COMPLETED orders by revenue: a table on wide screens, stacked rows on phones. */
-export function TopItems({ items }: { items: ReportItem[] }) {
+export function TopItems({ items, shippingTotal, revenue }: Props) {
+  const shippingShare = revenue > 0 ? shippingTotal / revenue : 0;
   return (
     <section aria-labelledby="top-items-title" className="border-t border-ink/10 pt-4">
       <h2 id="top-items-title" className="font-semibold">
@@ -50,6 +58,19 @@ export function TopItems({ items }: { items: ReportItem[] }) {
               </td>
             </tr>
           ))}
+          {shippingTotal > 0 ? (
+            <tr className="border-t border-ink/10 text-ink/70">
+              <th scope="row" className="py-3 pr-4 font-medium">Phí ship</th>
+              <td className="py-3 pr-4" />
+              <td className="py-3 pr-4 text-right font-display text-xl font-bold">{formatVnd(shippingTotal)}</td>
+              <td className="py-3">
+                <span className="flex items-center gap-3">
+                  <span className="w-10 text-right">{shareFormat.format(shippingShare)}</span>
+                  <ShareBar share={shippingShare} />
+                </span>
+              </td>
+            </tr>
+          ) : null}
         </tbody>
       </table>
 
@@ -71,6 +92,18 @@ export function TopItems({ items }: { items: ReportItem[] }) {
             </p>
           </li>
         ))}
+        {shippingTotal > 0 ? (
+          <li className="border-t border-ink/10 py-2.5 text-ink/70">
+            <p className="flex items-baseline justify-between gap-3">
+              <span className="font-medium">Phí ship</span>
+              <span className="shrink-0 font-display text-lg font-bold leading-none tabular-nums">{formatVnd(shippingTotal)}</span>
+            </p>
+            <p className="mt-1 flex items-center gap-3 text-sm tabular-nums">
+              <ShareBar share={shippingShare} />
+              <span className="shrink-0">{shareFormat.format(shippingShare)}</span>
+            </p>
+          </li>
+        ) : null}
       </ul>
     </section>
   );

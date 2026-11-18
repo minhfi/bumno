@@ -7,24 +7,30 @@ import type { ReportItem, ReportRange, ReportResponse, ReportSummary } from "./t
 
 const PENDING_STATUSES: ReadonlySet<OrderStatus> = new Set(["NEW", "CONFIRMED", "DELIVERING"]);
 
-type StatusTotals = Map<OrderStatus, { orders: number; total: number }>;
+type StatusTotals = Map<OrderStatus, { orders: number; total: number; shippingFee: number }>;
 
 async function statusTotals({ from, to }: ReportWindow): Promise<StatusTotals> {
   const rows = await db.order.groupBy({
     by: ["status"],
     where: { deliverySlot: { gte: from, lt: to } },
     _count: { _all: true },
-    _sum: { total: true },
+    _sum: { total: true, shippingFee: true },
   });
-  return new Map(rows.map((row) => [row.status, { orders: row._count._all, total: row._sum.total ?? 0 }]));
+  return new Map(
+    rows.map((row) => [
+      row.status,
+      { orders: row._count._all, total: row._sum.total ?? 0, shippingFee: row._sum.shippingFee ?? 0 },
+    ]),
+  );
 }
 
 function summarize(totals: StatusTotals): ReportSummary {
-  const completed = totals.get("COMPLETED") ?? { orders: 0, total: 0 };
+  const completed = totals.get("COMPLETED") ?? { orders: 0, total: 0, shippingFee: 0 };
   const cancelledOrders = totals.get("CANCELLED")?.orders ?? 0;
   const allOrders = [...totals.values()].reduce((sum, row) => sum + row.orders, 0);
   return {
     revenue: completed.total,
+    shippingTotal: completed.shippingFee,
     completedOrders: completed.orders,
     averageOrderValue: completed.orders > 0 ? Math.round(completed.total / completed.orders) : 0,
     cancelledOrders,

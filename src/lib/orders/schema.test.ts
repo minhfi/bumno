@@ -94,4 +94,18 @@ describe("updateOrderSchema", () => {
     expect(updateOrderSchema.safeParse({ status: "CONFIRMED", items: [{ productId: "phan-thuong", quantity: 1 }] }).success).toBe(false);
     expect(updateOrderSchema.safeParse({ internalNote: "x", address: "12 Lê Lợi, Quận 1" }).success).toBe(true);
   });
+
+  it("accepts a whole-VND shipping fee from 0 to 1.000.000, alone or with status and note", () => {
+    expect(updateOrderSchema.safeParse({ shippingFee: 0 }).success).toBe(true);
+    expect(updateOrderSchema.safeParse({ shippingFee: 1_000_000 }).success).toBe(true);
+    expect(updateOrderSchema.safeParse({ shippingFee: 15_000, status: "COMPLETED", internalNote: "x" }).success).toBe(true);
+    for (const shippingFee of [-1, 1_000_001, 1.5, "15000", null]) {
+      expect(updateOrderSchema.safeParse({ shippingFee }).success, String(shippingFee)).toBe(false);
+    }
+  });
+
+  it("does not combine a shipping fee with an address or items", () => {
+    expect(updateOrderSchema.safeParse({ shippingFee: 15_000, address: "12 Lê Lợi, Quận 1" }).success).toBe(false);
+    expect(updateOrderSchema.safeParse({ shippingFee: 15_000, items: [{ productId: "phan-thuong", quantity: 1 }] }).success).toBe(false);
+  });
 });
