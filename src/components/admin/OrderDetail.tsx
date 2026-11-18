@@ -38,7 +38,7 @@ function StatusTrack({ status }: { status: OrderStatus }) {
           ) : null}
           <span
             aria-hidden
-            className={`absolute left-1/2 top-0 size-4 -translate-x-1/2 rounded-full ${
+            className={`absolute left-1/2 top-0 z-10 size-4 -translate-x-1/2 rounded-full ${
               index < current ? "bg-rim" : index === current ? "bg-rim ring-4 ring-rim/30" : "border-2 border-ink/25 bg-surface"
             }`}
           />
@@ -179,13 +179,13 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               <StatusTrack status={order.status} />
 
               {next || canCancel(order.status) ? (
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   {next && nextLabel ? (
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => save({ status: next }, "status")}
-                      className="min-h-11 flex-1 rounded-lg bg-rim px-5 text-lg sm:min-h-10 sm:text-base font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
+                      className="min-h-10 rounded-lg bg-rim px-4 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60 sm:min-h-9 sm:text-sm"
                     >
                       {saving === "status" ? "Đang lưu…" : nextLabel}
                     </button>
@@ -195,7 +195,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       disabled={busy}
                       onClick={() => setConfirmCancel(true)}
-                      className="min-h-11 rounded-lg px-4 font-semibold text-chili sm:min-h-10 hover:bg-chili/8 disabled:opacity-60"
+                      className="min-h-10 rounded-lg px-3 text-[15px] font-semibold text-chili hover:bg-chili/8 disabled:opacity-60 sm:min-h-9 sm:text-sm"
                     >
                       Huỷ đơn
                     </button>

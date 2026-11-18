@@ -151,11 +151,11 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="min-h-12 flex-1 rounded-lg bg-rim px-5 text-lg sm:min-h-10 sm:text-base font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60"
+          className="min-h-10 rounded-lg bg-rim px-4 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:opacity-60 sm:min-h-9 sm:text-sm"
         >
           {saving ? "Đang lưu…" : "Lưu thay đổi"}
         </button>
-        <button type="button" onClick={onCancel} className="min-h-12 rounded-lg px-4 font-medium sm:min-h-10 hover:bg-ink/6">
+        <button type="button" onClick={onCancel} className="min-h-10 rounded-lg px-3 text-[15px] font-medium hover:bg-ink/6 sm:min-h-9 sm:text-sm">
           Bỏ qua
         </button>
       </div>
