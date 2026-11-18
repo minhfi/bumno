@@ -22,10 +22,12 @@ function statusChoices(status: OrderStatus): OrderStatus[] {
 }
 
 const feeFormat = new Intl.NumberFormat("vi-VN");
+/** As many digits as the maximum has; a larger number of that length shows the error instead of being cut off. */
+const MAX_FEE_DIGITS = String(MAX_SHIPPING_FEE).length;
 
 /** Digits typed into the fee field, with thousands separators; empty stays empty. */
 function formatFeeInput(value: string): string {
-  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, 7);
+  const digits = value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").slice(0, MAX_FEE_DIGITS);
   return digits === "" ? "" : feeFormat.format(Number(digits));
 }
 
@@ -120,11 +122,11 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   const feeValue = parseFeeInput(fee);
   const feeChanged = order !== null && feeValue !== order.shippingFee;
   const feeTooLarge = feeValue > MAX_SHIPPING_FEE;
-  const changed = statusChanged || noteChanged || feeChanged;
+  const hasChanges = statusChanged || noteChanged || feeChanged;
 
   /** Saves the status, shipping fee and note in one request; moving to "Đã huỷ" asks first. */
   function submitOrder(confirmed = false) {
-    if (!order || !chosenStatus || !changed || feeTooLarge) return;
+    if (!order || !chosenStatus || !hasChanges || feeTooLarge) return;
     if (statusChanged && chosenStatus === "CANCELLED" && !confirmed) {
       setConfirmCancel(true);
       return;
@@ -365,7 +367,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                 ) : (
                   <button
                     type="submit"
-                    disabled={busy || !changed || feeTooLarge}
+                    disabled={busy || !hasChanges || feeTooLarge}
                     className="min-h-10 rounded-lg bg-rim px-5 text-[15px] font-semibold text-on-rim hover:bg-rim/90 disabled:bg-ink/15 disabled:text-ink/50 sm:min-h-9 sm:text-sm"
                   >
                     {saving === "order" ? "Đang lưu…" : "Lưu"}

@@ -37,7 +37,8 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
     document.getElementById("edit-address")?.focus();
   }, []);
 
-  const total = rows.reduce((sum, row) => sum + row.unitPrice * row.quantity, 0);
+  // The saved total keeps the order's shipping fee.
+  const total = rows.reduce((sum, row) => sum + row.unitPrice * row.quantity, 0) + order.shippingFee;
 
   function changeQuantity(productId: string, delta: number) {
     setRows((current) =>
@@ -140,7 +141,14 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
             {errors.items}
           </p>
         ) : null}
-        <p role="status" className="mt-4 flex items-baseline gap-2 border-t border-ink/10 pt-3">
+        {order.shippingFee > 0 ? (
+          <p className="mt-4 flex items-baseline gap-2 tabular-nums">
+            <span>Phí ship</span>
+            <span aria-hidden className="mb-1 flex-1 border-b-2 border-dotted border-ink/20" />
+            <span>{formatVnd(order.shippingFee)}</span>
+          </p>
+        ) : null}
+        <p role="status" className={`${order.shippingFee > 0 ? "mt-2" : "mt-4"} flex items-baseline gap-2 border-t border-ink/10 pt-3`}>
           <span className="font-semibold">Tổng tạm tính</span>
           <span aria-hidden className="flex-1" />
           <span className="font-display text-2xl font-extrabold tabular-nums">{formatVnd(total)}</span>

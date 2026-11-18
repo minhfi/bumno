@@ -122,13 +122,10 @@ export async function updateOrder(code: string, changes: UpdateOrderData): Promi
     const repriced = changes.items ? repriceOrder(current.items, changes.items) : null;
     if (repriced && !repriced.ok) return { ok: false, reason: "UNKNOWN_PRODUCT" } as const;
 
-    // `total` is always items + shipping fee.
+    // `total` is always items + shipping fee; recompute it when either part changes.
     const shippingFee = changes.shippingFee ?? current.shippingFee;
-    const total = repriced
-      ? repriced.total + shippingFee
-      : changingFee
-        ? current.total - current.shippingFee + shippingFee
-        : undefined;
+    const itemsTotal = repriced ? repriced.total : current.total - current.shippingFee;
+    const total = repriced || changingFee ? itemsTotal + shippingFee : undefined;
 
     // The status condition makes a concurrent change of the same order fail instead of skipping a rule.
     const updated = await tx.order.updateMany({

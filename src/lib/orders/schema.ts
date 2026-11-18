@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { productIds } from "@/config/menu";
+import { formatVnd, productIds } from "@/config/menu";
 import { ORDER_STATUSES } from "./types";
 
 export const MAX_QUANTITY = 20;
@@ -93,7 +93,7 @@ export const updateOrderSchema = z
       .number({ error: "Phí ship không hợp lệ" })
       .int("Phí ship không hợp lệ")
       .min(0, "Phí ship không hợp lệ")
-      .max(MAX_SHIPPING_FEE, "Phí ship tối đa 1.000.000 đ")
+      .max(MAX_SHIPPING_FEE, `Phí ship tối đa ${formatVnd(MAX_SHIPPING_FEE)}`)
       .optional(),
     address: addressSchema.optional(),
     items: z

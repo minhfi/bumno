@@ -129,18 +129,30 @@ test.describe("editing an order", () => {
 
     await fee.fill("15000");
     await expect(fee).toHaveValue("15.000");
-    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đang giao" });
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await expect(dialog.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
-    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("DELIVERING");
     await expect(fee).toHaveValue("15.000");
     const items = dialog.getByRole("region", { name: "Món" });
     await expect(items).toContainText(/Phí ship\s*15\.000đ/);
     await expect(items).toContainText(/Tổng\s*65\.000đ/);
 
+    // The edit form's running total keeps the fee.
+    await dialog.getByRole("button", { name: "Sửa địa chỉ và món" }).click();
+    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("65.000đ");
+    await dialog.getByRole("button", { name: "Thêm 1 Thêm bánh" }).click();
+    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("75.000đ");
+    await dialog.getByRole("button", { name: "Bỏ qua" }).click();
+
+    // The fee can be saved together with a status change.
+    await fee.fill("20.000");
+    await dialog.getByLabel("Trạng thái").selectOption({ label: "Đang giao" });
+    await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("DELIVERING");
+    await expect(items).toContainText(/Tổng\s*70\.000đ/);
+
     await dialog.getByRole("button", { name: "Đóng" }).click();
     const row = page.locator("tr, li").filter({ has: page.getByRole("button", { name: `Xem đơn ${code}` }) }).filter({ visible: true });
-    await expect(row).toContainText("65.000đ");
+    await expect(row).toContainText("70.000đ");
 
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Hoàn thành" });
