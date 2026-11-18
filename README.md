@@ -32,7 +32,7 @@ Requirements: Node.js 20+, Python 3.9+, git, Claude Code.
 
 ## Usage
 
-1. Clone the target repo(s) into `workspace/` (skip for a new app — it will be scaffolded there). Frontend and backend are separate repos, e.g. `workspace/my-web` and `workspace/my-api`.
+1. Apps live in `workspace/` as folders of this repo (no nested git repo). A new app is scaffolded there. Frontend and backend are separate apps, e.g. `workspace/my-web` and `workspace/my-api`.
 2. Open this folder in Claude Code and run:
 
    ```
@@ -47,7 +47,7 @@ If a plan is left `Approved` or `In progress`, the next session offers to resume
 
 ### Frontend + backend features
 
-When a feature needs both repos, one plan covers both. The plan's **Backend** section fixes the API contract (endpoints, request / response, errors), schema changes and migrations, and new config — this is approved together with the rest of the plan. Claude builds the backend first, then the frontend against that contract, using the same `feature/<slug>` branch name in each repo. Baseline, tests, commits, and review run per repo; Phase 4 adds backend API / integration tests (local / test DB only), a migration up / down check, a FE ↔ BE contract check, and full-stack E2E. Backend rules are stack-agnostic and live in [docs/standards.md](docs/standards.md) → **Backend**.
+When a feature needs both repos, one plan covers both. The plan's **Backend** section fixes the API contract (endpoints, request / response, errors), schema changes and migrations, and new config — this is approved together with the rest of the plan. Claude builds the backend first, then the frontend against that contract, on one `feature/<slug>` branch. Baseline, tests, and review run per app; Phase 4 adds backend API / integration tests (local / test DB only), a migration up / down check, a FE ↔ BE contract check, and full-stack E2E. Backend rules are stack-agnostic and live in [docs/standards.md](docs/standards.md) → **Backend**.
 
 ### Small fixes
 
@@ -98,7 +98,7 @@ flowchart TD
     G["1. Grill<br/>grill-me + explorer lookups<br/>no code"] --> P["2. Plan<br/>docs/plans/YYYY-MM-DD-slug.md<br/>+ design pass if UI<br/>+ backend pass if BE"]
     P --> A{Approve this plan?}
     A -->|Change request| P
-    A -->|Approved| I1["3. Implement<br/>per repo: clean tree, branch feature/slug<br/>record baseline"]
+    A -->|Approved| I1["3. Implement<br/>clean tree, branch feature/slug<br/>record baseline per app"]
     I1 --> I2[Build to plan + write tests<br/>backend first, then frontend<br/>tick tasks]
     I2 -->|Plan wrong or blocked| A
     I2 --> TA & TB & TC
@@ -166,7 +166,7 @@ Defined in `.claude/agents/` to keep long output out of the main context:
   commands/task.md      # /task entry point (Jira ticket intake)
   skills/               # project skills (local, edited in place)
   templates/plan.md     # plan template
-docs/plans/             # one plan per feature (git-ignored, local only)
+docs/plans/             # one plan per feature (committed)
 docs/standards.md       # coding standards for workspace repos
-workspace/              # code repos (git-ignored, each keeps its own history)
+workspace/              # app folders, tracked in this repo
 ```

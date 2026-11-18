@@ -11,7 +11,7 @@ Follow the **Guardrails** in `CLAUDE.md`. No plan file in `docs/plans/`.
 
 ## 1. Intake
 
-- Resolve the target repo in `workspace/`; ask if unclear. All edits, commands, and git run inside it (`cd workspace/<repo> && ...`, not `git -C`).
+- Resolve the target repo in `workspace/`; ask if unclear. All edits and app commands run inside it (`cd workspace/<repo> && ...`); git runs from the repo root, not with `git -C`.
 - Read the repo's own docs (`CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING.md`) and the code involved. Use the `explorer` subagent for broader lookups.
 - If the expected behavior is unclear, draft acceptance criteria marked `[PROPOSED]` and ask the user to confirm before changing behavior.
 

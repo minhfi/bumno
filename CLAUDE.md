@@ -2,10 +2,10 @@
 
 An AI delivery workflow: **Grill → Plan → Approve → Implement → Test → Review → Report**.
 
-- Code repos live in `workspace/<repo>/` (each keeps its own git history; ignored by this workflow's git).
-  - Frontend and backend are separate repos. A feature may touch one or both (see **Multi-repo features**).
-  - Run git for a repo from inside it (`cd workspace/<repo> && git status`), not with `git -C` — the pre-allowed commands in `.claude/settings.json` only match `git <subcommand> ...`.
-- Plans live in `docs/plans/YYYY-MM-DD-<slug>.md` (this workflow's root, not inside the code repo).
+- One git repo holds the workflow, the plans, and the code. Apps live in `workspace/<app>/` as plain folders tracked by this repo (no nested `.git`).
+  - Frontend and backend are separate apps (e.g. `workspace/my-web`, `workspace/my-api`). A feature may touch one or both (see **Multi-repo features**). "Repo" below means one app folder.
+  - Run git from the repo root (`git status`), not with `git -C` — the pre-allowed commands in `.claude/settings.json` only match `git <subcommand> ...`. Run app commands (`pnpm ...`) inside the app folder.
+- Plans live in `docs/plans/YYYY-MM-DD-<slug>.md` and are committed with the code.
 - Plan template: `.claude/templates/plan.md`.
 - Coding standards for every target repo: `docs/standards.md` (the repo's own documented standards take precedence).
 - Setup for a new machine: see `README.md`.
@@ -73,9 +73,9 @@ When continuing, read the plan, then resume from the first unticked task.
 
 ## Phase 3 — Implement
 
-1. **Prepare the repo** (each repo in the plan)
-   - Existing repo: make sure the working tree is clean — if it is not, stop and ask the user (never stash, commit, or discard their changes yourself). Then create a branch `feature/<slug>` from the branch currently checked out (that is the base branch — do not switch to `main`/`master`). Record it in the plan.
-   - New app: scaffold it into `workspace/<app>` with the stack's official generator, `git init`, make an initial commit on `main`, then branch `feature/<slug>`.
+1. **Prepare the repo**
+   - Make sure the working tree is clean — if it is not, stop and ask the user (never stash, commit, or discard their changes yourself). Then create one branch `feature/<slug>` from the branch currently checked out (that is the base branch — do not switch to `main`/`master`). It covers every app in the plan. Record it in the plan.
+   - New app: on that branch, scaffold it into `workspace/<app>` with the stack's official generator. Do not `git init`; if the generator created a `.git` in the app folder, remove it so the app stays in this repo.
    - Existing repo: record the **baseline** — run `test-runner` once with lint, typecheck, unit / integration, and build (backend repo: also API / integration) and write any failures to the plan's **Test results → Baseline** (see Guardrails).
 2. Set the plan's `Status` to `In progress`.
 3. Implement only what the approved plan covers. Follow the repo's existing architecture, patterns, and naming (and `docs/standards.md`); read relevant code first.
@@ -86,10 +86,10 @@ When continuing, read the plan, then resume from the first unticked task.
 ### Multi-repo features
 
 When a plan covers both a frontend and a backend repo:
-- One plan for both, listing each repo with its own base branch in the plan's **Repos** table. Use the same `feature/<slug>` branch name in both.
+- One plan for both, listing each app in the plan's **Repos** table. The one `feature/<slug>` branch covers both.
 - Build the backend first, then the frontend. The plan's **Backend** contract is the single source of truth; the frontend's API types and client follow it.
 - If the contract must change mid-way, stop, update the plan, and get approval before changing either repo.
-- Baseline, tests, commits, and review run per repo.
+- Baseline, tests, and review run per app. Commits stay on the one branch; keep each commit scoped to one app where practical.
 
 ### Single-repo features
 
@@ -150,16 +150,16 @@ Run every layer that applies; record results in the plan's **Test results** sect
 
 ## Phase 5 — Review
 
-- Commit the work on the feature branch with `git-commit` (only after Phase 4 passes), in each repo.
-- Run the `code-review` skill inside each target repo:
-  - **Fixed point:** that repo's base branch recorded in the plan.
+- Commit the work on the feature branch with `git-commit` (only after Phase 4 passes).
+- Run the `code-review` skill for each app in the plan (limit the diff to its folder):
+  - **Fixed point:** the base branch recorded in the plan.
   - **Spec:** the plan file in `docs/plans/` (pass its absolute path).
   - **Standards:** this workflow's `docs/standards.md` plus the target repo's own docs (e.g. `CONTRIBUTING.md`).
 - Show findings to the user. Fix the ones they accept, re-run only the Phase 4 groups the fixes affect (then D, the build), and commit again.
 
 ## Phase 6 — Report
 
-Summarize in chat: what was built, branch name per repo, files changed per repo, migrations added, test results (pass/fail per layer), review findings and how they were handled, and any follow-ups. Set the plan's `Status` to `Done`.
+Summarize in chat: what was built, the branch name, files changed per app, migrations added, test results (pass/fail per layer), review findings and how they were handled, and any follow-ups. Set the plan's `Status` to `Done`.
 Do not push or open a PR unless the user asks.
 
 ## Guardrails

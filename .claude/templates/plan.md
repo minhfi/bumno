@@ -7,7 +7,7 @@
 
 ### Repos
 
-_One row per repo. Base branch = the branch checked out in that repo when Phase 3 starts. Same feature branch name in every repo. Multi-repo order: backend first, then frontend._
+_One row per app. Base branch = the branch checked out when Phase 3 starts. One feature branch covers every app. Multi-repo order: backend first, then frontend._
 
 | Repo | Role | Existing / new | Base branch | Feature branch |
 |---|---|---|---|---|
