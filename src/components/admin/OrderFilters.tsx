@@ -15,9 +15,9 @@ type Props = {
 };
 
 const fieldClass =
-  "min-h-11 rounded-lg border sm:min-h-9 border-ink/20 bg-surface px-3 focus:border-rim-strong focus:outline-none";
+  "min-h-10 rounded-lg border border-ink/20 sm:min-h-9 bg-surface px-3 focus:border-rim-strong focus:outline-none";
 const chipClass =
-  "min-h-11 shrink-0 rounded-full px-4 text-[15px] sm:min-h-9 sm:px-3.5 sm:text-sm font-medium text-ink/75 hover:bg-ink/6 aria-pressed:bg-ink aria-pressed:text-enamel";
+  "min-h-10 shrink-0 rounded-full px-3 text-[15px] font-medium sm:min-h-9 sm:px-3.5 sm:text-sm text-ink/75 hover:bg-ink/6 aria-pressed:bg-ink aria-pressed:text-enamel";
 
 const statusTabs: { status: OrderStatus | undefined; label: string }[] = [
   { status: undefined, label: "Tất cả" },
@@ -42,8 +42,8 @@ export function OrderFilters({ value, today, yesterday, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:gap-x-4">
         <div role="group" aria-label="Ngày đặt" className="flex items-center gap-1">
           <button type="button" aria-pressed={date === yesterday} onClick={() => setDate(yesterday)} className={chipClass}>
             Hôm qua
@@ -53,12 +53,12 @@ export function OrderFilters({ value, today, yesterday, onChange }: Props) {
           </button>
         </div>
         <label className="flex items-center gap-2 text-[15px] text-ink/75">
-          <span>Ngày đặt</span>
+          <span className="sr-only sm:not-sr-only">Ngày đặt</span>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={`${fieldClass} text-ink tabular-nums`}
+            className={`${fieldClass} w-[9.25rem] text-ink tabular-nums sm:w-auto`}
           />
         </label>
         <form role="search" onSubmit={submitSearch} className="flex min-w-[260px] flex-1 gap-2 md:max-w-[380px] md:ml-auto">
@@ -74,7 +74,7 @@ export function OrderFilters({ value, today, yesterday, onChange }: Props) {
             onChange={(e) => setQ(e.target.value)}
             className={`${fieldClass} min-w-0 flex-1`}
           />
-          <button type="submit" className="min-h-11 rounded-lg bg-ink px-4 font-semibold sm:min-h-9 text-enamel hover:bg-ink/85">
+          <button type="submit" className="min-h-10 rounded-lg bg-ink px-4 font-semibold text-enamel sm:min-h-9 hover:bg-ink/85">
             Tìm
           </button>
         </form>
