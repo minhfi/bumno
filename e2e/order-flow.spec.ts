@@ -127,6 +127,28 @@ test.describe("editing an order", () => {
   });
 });
 
+test.describe("order list", () => {
+  test("scrolling to the end loads the next orders instead of paging", async ({ page, request }, testInfo) => {
+    await page.clock.setFixedTime(vnTime("07:00"));
+    // More than one API page (20); each order from its own IP so the rate limit is not hit.
+    const project = testInfo.project.name === "mobile" ? 1 : 2;
+    for (let i = 0; i < 21; i += 1) await createOrderViaApi(request, `10.9.5${project}.${i + 1}`, `Khách cuộn ${i + 1}`);
+
+    await login(page);
+    const { total } = (await (await page.request.get("/api/admin/orders")).json()) as { total: number };
+    const status = page.getByRole("status").filter({ hasText: /đơn$/ });
+    await expect(status).toHaveText(`Đang hiện 20/${total} đơn`);
+    await expect(page.getByRole("navigation", { name: "Phân trang" })).toHaveCount(0);
+
+    await expect(async () => {
+      await page.mouse.wheel(0, 10_000);
+      await expect(status).toHaveText(`Đã hiện hết ${total} đơn`, { timeout: 1_000 });
+    }).toPass();
+    await expect(page.getByRole("button", { name: /^Xem đơn / })).toHaveCount(total);
+    await expect(page).toHaveURL(/\/admin\/orders$/);
+  });
+});
+
 test.describe("admin access", () => {
   test("admin pages and APIs are blocked without login", async ({ page, request }) => {
     await page.goto("/admin/orders");

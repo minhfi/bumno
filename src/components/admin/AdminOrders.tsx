@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { shopDateString } from "@/lib/orders/slots";
 import { isOrderStatus } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData } from "@/lib/orders/types";
@@ -14,21 +14,58 @@ import { useOrders, type OrderFiltersValue } from "./use-orders";
 
 function readFilters(params: URLSearchParams): OrderFiltersValue {
   const status = params.get("status") ?? "";
-  const page = Number(params.get("page"));
   return {
     date: params.get("date") || undefined,
     status: isOrderStatus(status) ? status : undefined,
     q: params.get("q") || undefined,
-    page: Number.isInteger(page) && page > 1 ? page : 1,
   };
 }
 
 /** The one filter to undo when nothing matches: search first, then status, then date. */
 function emptyStateAction(filters: OrderFiltersValue): { label: string; next: OrderFiltersValue } | null {
-  if (filters.q) return { label: "Xoá tìm kiếm", next: { ...filters, q: undefined, page: 1 } };
-  if (filters.status) return { label: "Xem mọi trạng thái", next: { ...filters, status: undefined, page: 1 } };
-  if (filters.date) return { label: "Về hôm nay", next: { ...filters, date: undefined, page: 1 } };
+  if (filters.q) return { label: "Xoá tìm kiếm", next: { ...filters, q: undefined } };
+  if (filters.status) return { label: "Xem mọi trạng thái", next: { ...filters, status: undefined } };
+  if (filters.date) return { label: "Về hôm nay", next: { ...filters, date: undefined } };
   return null;
+}
+
+type LoadMoreProps = { shown: number; total: number; loading: boolean; onLoadMore: () => void };
+
+/**
+ * Loads the next page when the end of the list scrolls into view (a little before it, so it is usually ready), and
+ * offers a button for keyboard users or when the observer is not available.
+ */
+function LoadMore({ shown, total, loading, onLoadMore }: LoadMoreProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const onLoadMoreRef = useRef(onLoadMore);
+  const hasMore = shown < total;
+
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) onLoadMoreRef.current();
+    }, { rootMargin: "0px 0px 300px 0px" });
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, shown]);
+
+  return (
+    <div ref={sentinelRef} className="mt-3 flex min-h-11 flex-col items-center justify-center gap-1 text-sm text-ink/70 tabular-nums sm:mt-5">
+      <p role="status">
+        {loading ? "Đang tải thêm…" : hasMore ? `Đang hiện ${shown}/${total} đơn` : `Đã hiện hết ${total} đơn`}
+      </p>
+      {hasMore && !loading ? (
+        <button type="button" onClick={onLoadMore} className="min-h-10 rounded-lg px-4 font-semibold text-ink underline underline-offset-4 hover:bg-ink/6 sm:min-h-9">
+          Tải thêm
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 export function AdminOrders() {
@@ -40,14 +77,13 @@ export function AdminOrders() {
   const [today] = useState(() => shopDateString(new Date()));
 
   const goToLogin = useCallback(() => router.replace("/admin"), [router]);
-  const { data, error, loading, reload, replaceItem } = useOrders(filters, goToLogin);
+  const { data, error, loading, loadingMore, reload, loadMore, replaceItem } = useOrders(filters, goToLogin);
 
   function setFilters(next: OrderFiltersValue) {
     const params = new URLSearchParams();
     if (next.date) params.set("date", next.date);
     if (next.status) params.set("status", next.status);
     if (next.q) params.set("q", next.q);
-    if (next.page > 1) params.set("page", String(next.page));
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
@@ -57,8 +93,6 @@ export function AdminOrders() {
       replaceItem({ code, createdAt, customerName, phone, deliverySlot, total, status }),
     [replaceItem],
   );
-
-  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
   const emptyAction = emptyStateAction(filters);
 
@@ -121,29 +155,7 @@ export function AdminOrders() {
                 ))}
               </ul>
             </div>
-            <nav aria-label="Phân trang" className="mt-3 flex items-center justify-center gap-4 tabular-nums sm:mt-5">
-              <button
-                type="button"
-                aria-disabled={filters.page <= 1}
-                onClick={() => filters.page > 1 && setFilters({ ...filters, page: filters.page - 1 })}
-                aria-label="Trang trước"
-                className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
-              >
-                ‹
-              </button>
-              <span role="status" className="text-ink/75">
-                Trang {data.page}/{totalPages}, {data.total} đơn
-              </span>
-              <button
-                type="button"
-                aria-disabled={filters.page >= totalPages}
-                onClick={() => filters.page < totalPages && setFilters({ ...filters, page: filters.page + 1 })}
-                aria-label="Trang sau"
-                className="min-h-11 min-w-11 sm:min-h-9 sm:min-w-9 rounded-lg px-3 text-xl font-semibold hover:bg-ink/6 aria-disabled:opacity-35"
-              >
-                ›
-              </button>
-            </nav>
+            <LoadMore shown={data.items.length} total={data.total} loading={loadingMore} onLoadMore={() => void loadMore()} />
           </>
         ) : null}
       </section>

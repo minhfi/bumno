@@ -31,11 +31,11 @@ export function OrderFilters({ value, today, onChange }: Props) {
   }
 
   const date = value.date ?? today;
-  const setDate = (next: string) => onChange({ ...value, date: next && next !== today ? next : undefined, page: 1 });
+  const setDate = (next: string) => onChange({ ...value, date: next && next !== today ? next : undefined });
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onChange({ ...value, q: q.trim() || undefined, page: 1 });
+    onChange({ ...value, q: q.trim() || undefined });
   }
 
   // Wide screens: status tabs and the toolbar share one row above the list; narrower screens stack them.
@@ -51,7 +51,7 @@ export function OrderFilters({ value, today, onChange }: Props) {
             key={label}
             type="button"
             aria-pressed={value.status === status}
-            onClick={() => onChange({ ...value, status, page: 1 })}
+            onClick={() => onChange({ ...value, status })}
             className={tabClass}
           >
             {label}
