@@ -296,7 +296,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               <label htmlFor="internal-note" className="font-semibold">
                 Ghi chú nội bộ
               </label>
-              <p className="text-sm text-ink/65">Chỉ quán thấy, khách không thấy.</p>
               <textarea
                 id="internal-note"
                 rows={3}
