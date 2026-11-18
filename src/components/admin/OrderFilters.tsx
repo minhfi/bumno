@@ -38,12 +38,13 @@ export function OrderFilters({ value, today, onChange }: Props) {
     onChange({ ...value, q: q.trim() || undefined, page: 1 });
   }
 
+  // Wide screens: status tabs and the toolbar share one row above the list; narrower screens stack them.
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 min-[1080px]:flex min-[1080px]:items-end min-[1080px]:justify-between min-[1080px]:gap-6 min-[1080px]:space-y-0 min-[1080px]:border-b min-[1080px]:border-ink/10">
       <div
         role="group"
         aria-label="Trạng thái"
-        className="-mx-4 flex overflow-x-auto border-b border-ink/10 px-4 [scrollbar-width:none] sm:mx-0 sm:px-0"
+        className="-mx-4 flex overflow-x-auto border-b border-ink/10 px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 min-[1080px]:border-b-0"
       >
         {statusTabs.map(({ status, label }) => (
           <button
@@ -58,7 +59,7 @@ export function OrderFilters({ value, today, onChange }: Props) {
         ))}
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-[1080px]:shrink-0 min-[1080px]:pb-1">
         <label className="shrink-0">
           <span className="sr-only">Ngày đặt</span>
           <input
@@ -69,7 +70,7 @@ export function OrderFilters({ value, today, onChange }: Props) {
           />
         </label>
 
-        <form role="search" onSubmit={submitSearch} className="flex min-w-0 flex-1 gap-2 sm:ml-auto sm:max-w-[380px]">
+        <form role="search" onSubmit={submitSearch} className="flex min-w-0 flex-1 gap-2 sm:max-w-[380px] min-[1080px]:w-[300px] min-[1080px]:flex-none">
           <label htmlFor="filter-q" className="sr-only">
             Tìm SĐT hoặc mã đơn
           </label>
