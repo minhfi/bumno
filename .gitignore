@@ -1,7 +1,4 @@
-# Code repos are cloned into workspace/ and keep their own git history
-workspace/*
-!workspace/.gitkeep
+# The app lives in workspace/bumno-web as part of this repo; its own .gitignore covers build output and env files.
 
-# Plans are local working documents, not committed
-docs/plans/*
-!docs/plans/.gitkeep
+# macOS
+.DS_Store
