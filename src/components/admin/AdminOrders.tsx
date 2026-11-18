@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
-import { DAY_MS, shopDateString } from "@/lib/orders/slots";
+import { shopDateString } from "@/lib/orders/slots";
 import { isOrderStatus } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData } from "@/lib/orders/types";
 import { AdminHeader } from "./AdminHeader";
@@ -38,7 +38,6 @@ export function AdminOrders() {
   const filters = readFilters(new URLSearchParams(searchParams.toString()));
   const [openCode, setOpenCode] = useState<string | null>(null);
   const [today] = useState(() => shopDateString(new Date()));
-  const [yesterday] = useState(() => shopDateString(new Date(Date.now() - DAY_MS)));
 
   const goToLogin = useCallback(() => router.replace("/admin"), [router]);
   const { data, error, loading, reload, replaceItem } = useOrders(filters, goToLogin);
@@ -68,7 +67,7 @@ export function AdminOrders() {
       <AdminHeader title="Đơn hàng" />
 
       <div className="mt-5">
-        <OrderFilters value={filters} today={today} yesterday={yesterday} onChange={setFilters} />
+        <OrderFilters value={filters} today={today} onChange={setFilters} />
       </div>
 
       {error ? (
