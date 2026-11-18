@@ -90,6 +90,35 @@ test.describe("reports", () => {
     await expect(tiles.getByText(after, { exact: true })).toBeVisible();
   });
 
+  test("switching range keeps the figures and the tabs in place while the next range loads", async ({ page }) => {
+    await page.clock.setFixedTime(vnTime("07:00"));
+    await login(page);
+    await page.goto("/admin/reports");
+    const tiles = page.locator("dl");
+    await expect(tiles.getByText("Doanh thu")).toBeVisible();
+    const tab = page.getByRole("button", { name: "Hôm nay" });
+    const widthBefore = (await tab.boundingBox())?.width;
+
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await page.route("**/api/admin/reports?range=30d", async (route) => {
+      await held;
+      await route.continue();
+    });
+
+    await page.getByRole("button", { name: "30 ngày" }).click();
+    await expect(page).toHaveURL(/\/admin\/reports\?range=30d$/);
+    await expect(page.getByRole("status", { name: "Đang tải báo cáo…" })).toHaveCount(0);
+    await expect(tiles.getByText("Doanh thu")).toBeVisible();
+    expect((await tab.boundingBox())?.width).toBe(widthBefore);
+
+    const response = page.waitForResponse("**/api/admin/reports?range=30d");
+    release();
+    await response;
+    await expect(page.locator('[aria-busy="false"]')).toHaveCount(1);
+    await expect(tiles.getByText("Doanh thu")).toBeVisible();
+  });
+
   test("an unknown range in the URL falls back to today", async ({ page }) => {
     await page.clock.setFixedTime(vnTime("07:00"));
     await login(page);

@@ -62,7 +62,7 @@ export function useReport(range: ReportRange, onUnauthorized: () => void) {
     };
   }, [load, range]);
 
-  /** Data for another range (still shown while the new one loads) is not returned. */
-  const data = state.data?.range === range ? state.data : null;
-  return { data, error: state.error, loading: state.loading, reload: load };
+  // After a range change the previous range's data stays (dimmed by the page) until the new one arrives, so the
+  // page keeps its height instead of swapping to the skeleton. `data.range` says which range it belongs to.
+  return { data: state.data, error: state.error, loading: state.loading, reload: load };
 }

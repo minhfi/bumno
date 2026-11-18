@@ -49,6 +49,14 @@ button {
   touch-action: manipulation;
 }
 
+/* Tailwind v4 resets buttons to the default cursor; every enabled action shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
 /* Keep focused elements clear of the sticky order bar on mobile. */
 @media (max-width: 767px) {
   html {
