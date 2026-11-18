@@ -142,9 +142,11 @@ test.describe("order list", () => {
 
     await expect(async () => {
       await page.mouse.wheel(0, 10_000);
-      await expect(status).toHaveText(`Đã hiện hết ${total} đơn`, { timeout: 1_000 });
+      await expect(page.getByRole("button", { name: /^Xem đơn / })).toHaveCount(total, { timeout: 1_000 });
     }).toPass();
-    await expect(page.getByRole("button", { name: /^Xem đơn / })).toHaveCount(total);
+    // With every order shown, the status line and the button go away.
+    await expect(status).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Tải thêm" })).toHaveCount(0);
     await expect(page).toHaveURL(/\/admin\/orders$/);
   });
 });

@@ -54,12 +54,15 @@ function LoadMore({ shown, total, loading, onLoadMore }: LoadMoreProps) {
     return () => observer.disconnect();
   }, [hasMore, shown]);
 
+  // Once every order is shown there is nothing to say below the list.
+  if (!hasMore && !loading) return null;
+
   return (
     <div ref={sentinelRef} className="mt-3 flex min-h-11 flex-col items-center justify-center gap-1 text-sm text-ink/70 tabular-nums sm:mt-5">
       <p role="status">
-        {loading ? "Đang tải thêm…" : hasMore ? `Đang hiện ${shown}/${total} đơn` : `Đã hiện hết ${total} đơn`}
+        {loading ? "Đang tải thêm…" : `Đang hiện ${shown}/${total} đơn`}
       </p>
-      {hasMore && !loading ? (
+      {!loading ? (
         <button type="button" onClick={onLoadMore} className="min-h-10 rounded-lg px-4 font-semibold text-ink underline underline-offset-4 hover:bg-ink/6 sm:min-h-9">
           Tải thêm
         </button>
