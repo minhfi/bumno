@@ -44,7 +44,7 @@ function ChangeLine({ change, upIsGood = true }: { change: Change; upIsGood?: bo
     <p className={`mt-1 text-sm font-medium tabular-nums ${color}`}>
       <span aria-hidden="true">{arrow} </span>
       <span className="sr-only">{word} </span>
-      {change.text} <span className="font-normal text-ink/65">so với kỳ trước</span>
+      {change.text} <span className="font-normal text-ink/65"><span className="sr-only sm:not-sr-only">so với </span>kỳ trước</span>
     </p>
   );
 }
@@ -53,10 +53,10 @@ type TileProps = { label: string; value: string; children: ReactNode; loud?: boo
 
 function Tile({ label, value, children, loud = false, className = "" }: TileProps) {
   return (
-    <div className={`min-w-0 border-t border-ink/10 py-4 pr-4 ${className}`}>
+    <div className={`min-w-0 border-t border-ink/10 py-3 pr-4 sm:py-4 ${className}`}>
       <dt className="text-sm font-medium text-ink/70">{label}</dt>
       <dd className="mt-1">
-        <span className={`block font-display font-extrabold leading-none tabular-nums break-words ${loud ? "text-[48px]" : "text-[28px] sm:text-[34px]"}`}>{value}</span>
+        <span className={`block font-display font-extrabold leading-none tabular-nums break-words ${loud ? "text-[40px] sm:text-[48px]" : "text-[24px] sm:text-[34px]"}`}>{value}</span>
         {children}
       </dd>
     </div>

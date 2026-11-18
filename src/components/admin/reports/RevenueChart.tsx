@@ -84,7 +84,7 @@ export function RevenueChart({ bucket, series }: Props) {
       <p className="mt-1 text-sm text-ink/65 tabular-nums">Cao nhất {formatVnd(max)}</p>
 
       <div className="-mx-4 mt-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-        <div className="relative pt-14" style={{ minWidth: `${count * (count > 14 ? 16 : 22)}px` }}>
+        <div className="relative pt-12 sm:pt-14" style={{ minWidth: `${count * (count > 14 ? 16 : 22)}px` }}>
           {shown && active !== null ? (
             <div
               aria-hidden="true"
@@ -104,7 +104,7 @@ export function RevenueChart({ bucket, series }: Props) {
             aria-label={`${titles[bucket]}, dùng phím mũi tên để xem từng cột`}
             viewBox={`0 0 ${width} ${CHART_HEIGHT}`}
             preserveAspectRatio="none"
-            className="block h-40 w-full overflow-visible"
+            className="block h-28 w-full overflow-visible sm:h-40"
             onKeyDown={moveFocus}
             onMouseLeave={() => {
               // Keep the label of a bar that still has keyboard focus.
@@ -170,25 +170,28 @@ export function RevenueChart({ bucket, series }: Props) {
         </div>
       </div>
 
-      <table className="sr-only">
-        <caption>{titles[bucket]}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Thời gian</th>
-            <th scope="col">Doanh thu</th>
-            <th scope="col">Đơn hoàn thành</th>
-          </tr>
-        </thead>
-        <tbody>
-          {series.map((point, index) => (
-            <tr key={point.start}>
-              <th scope="row">{periodLabel(bucket, point.start, index, count)}</th>
-              <td>{formatVnd(point.revenue)}</td>
-              <td>{point.completedOrders}</td>
+      {/* Wrapped: a table ignores the 1px size of `sr-only` and would stretch the page. */}
+      <div className="sr-only">
+        <table>
+          <caption>{titles[bucket]}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Thời gian</th>
+              <th scope="col">Doanh thu</th>
+              <th scope="col">Đơn hoàn thành</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {series.map((point, index) => (
+              <tr key={point.start}>
+                <th scope="row">{periodLabel(bucket, point.start, index, count)}</th>
+                <td>{formatVnd(point.revenue)}</td>
+                <td>{point.completedOrders}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

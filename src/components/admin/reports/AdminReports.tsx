@@ -60,7 +60,7 @@ export function AdminReports() {
     <div className="mx-auto max-w-[1120px] px-4 pb-10 pt-6 sm:px-6">
       <AdminHeader title="Báo cáo" />
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 sm:mt-5 sm:gap-y-2">
         <RangeTabs value={range} onChange={setRange} />
         <p aria-live="polite" className="text-sm text-ink/70 tabular-nums">
           {data ? `${rangeLabel(data)} (theo ngày giao)` : null}
@@ -76,11 +76,11 @@ export function AdminReports() {
         </div>
       ) : null}
 
-      <div aria-busy={loading} className="mt-5">
+      <div aria-busy={loading} className="mt-3 sm:mt-5">
         {!data && loading ? <Skeleton /> : null}
 
         {data ? (
-          <div className={`space-y-6 ${loading ? "opacity-60" : ""}`}>
+          <div className={`space-y-4 sm:space-y-6 ${loading ? "opacity-60" : ""}`}>
             <MetricTiles data={data} />
             {data.current.completedOrders === 0 ? (
               <div className="border-y border-ink/10 bg-surface px-5 py-12 text-center">

@@ -55,17 +55,20 @@ export function TopItems({ items }: { items: ReportItem[] }) {
 
       <ul role="list" className="mt-2 md:hidden">
         {items.map((item) => (
-          <li key={item.productId} className="border-t border-ink/10 py-3">
-            <p className="min-w-0 break-words font-medium">
-              {item.name}
-              {item.addon ? <AddonTag /> : null}
+          <li key={item.productId} className="border-t border-ink/10 py-2.5">
+            <p className="flex items-baseline justify-between gap-3">
+              <span className="min-w-0 break-words font-medium">
+                {item.name}
+                {item.addon ? <AddonTag /> : null}
+              </span>
+              <span className="shrink-0 font-display text-lg font-bold leading-none tabular-nums">{formatVnd(item.revenue)}</span>
             </p>
-            <p className="mt-0.5 text-[15px] text-ink/75 tabular-nums">
-              {item.quantity}&nbsp;phần · {formatVnd(item.revenue)} · {shareFormat.format(item.share)}
-            </p>
-            <span className="mt-2 block">
+            <p className="mt-1 flex items-center gap-3 text-sm text-ink/75 tabular-nums">
               <ShareBar share={item.share} />
-            </span>
+              <span className="shrink-0">
+                {item.quantity}&nbsp;phần · {shareFormat.format(item.share)}
+              </span>
+            </p>
           </li>
         ))}
       </ul>
