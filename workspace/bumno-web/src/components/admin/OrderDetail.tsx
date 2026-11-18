@@ -285,7 +285,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       if (isOrderStatus(e.target.value)) setStatusChoice(e.target.value);
                       setConfirmCancel(false);
                     }}
-                    className="mt-2 block min-h-10 w-full rounded-lg border border-ink/20 bg-surface px-3 focus:border-rim-strong disabled:opacity-60 sm:min-h-9 sm:text-sm"
+                    className="mt-2 block h-10 w-full rounded-lg border border-ink/20 bg-surface px-3 focus:border-rim-strong disabled:opacity-60 sm:h-9 sm:text-sm"
                   >
                     {statusChoices(order.status).map((status) => (
                       <option key={status} value={status}>

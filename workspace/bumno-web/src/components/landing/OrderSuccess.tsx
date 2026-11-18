@@ -22,7 +22,7 @@ export function OrderSuccess({ order, onNewOrder }: Props) {
         ))}
       </ul>
       <p className="mt-4 flex justify-between text-lg font-semibold">
-        <span>Tổng (trả khi nhận hàng)</span>
+        <span>Tổng</span>
         <span className="tabular-nums">{formatVnd(order.total)}</span>
       </p>
       <button

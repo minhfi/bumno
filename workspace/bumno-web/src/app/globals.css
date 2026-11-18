@@ -70,7 +70,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-:focus-visible {
+/* tabindex="-1" marks script-only focus targets (e.g. a dialog title); iOS Safari would ring them on open. */
+:focus-visible:not([tabindex="-1"]) {
   outline: 3px solid var(--rim-strong);
   outline-offset: 2px;
 }

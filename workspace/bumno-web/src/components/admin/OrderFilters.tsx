@@ -21,6 +21,12 @@ const statusTabs: { status: OrderStatus | undefined; label: string }[] = [
   ...ORDER_STATUSES.map((status) => ({ status, label: STATUS_LABELS[status] })),
 ];
 
+/** "2026-11-18" → "18/11/2026". */
+function formatDateLabel(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : isoDate;
+}
+
 export function OrderFilters({ value, today, onChange }: Props) {
   const [q, setQ] = useState(value.q ?? "");
   const [syncedQ, setSyncedQ] = useState(value.q);
@@ -60,13 +66,21 @@ export function OrderFilters({ value, today, onChange }: Props) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 min-[1080px]:shrink-0 min-[1080px]:pb-1">
-        <label className="shrink-0">
+        {/* Touch browsers (iOS) render the date in a long locale form ("ngày 18 thg 11, 2026"), so there the
+            input goes transparent over a dd/mm/yyyy label; tapping it still opens the native picker. */}
+        <label className="relative shrink-0 has-focus:[&>span]:border-rim-strong">
           <span className="sr-only">Ngày đặt</span>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 hidden items-center rounded-lg border border-ink/20 bg-surface px-2.5 text-ink tabular-nums pointer-coarse:flex sm:px-3 sm:text-sm"
+          >
+            {formatDateLabel(date)}
+          </span>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="min-h-10 w-[9.25rem] rounded-lg border border-ink/20 bg-surface px-2.5 text-ink tabular-nums focus:border-rim-strong focus:outline-none sm:min-h-9 sm:w-auto sm:px-3 sm:text-sm"
+            className="h-10 w-[9.25rem] rounded-lg border border-ink/20 bg-surface px-2.5 text-ink tabular-nums focus:border-rim-strong focus:outline-none pointer-coarse:relative pointer-coarse:opacity-0 sm:h-9 sm:w-auto sm:px-3 sm:text-sm"
           />
         </label>
 
