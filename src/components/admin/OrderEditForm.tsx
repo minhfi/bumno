@@ -64,7 +64,7 @@ export function OrderEditForm({ order, saving, onSave, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-4 border-t border-ink/10 pt-4 sm:space-y-5 sm:pt-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-4 border-t border-ink/10 pt-4 first:border-t-0 first:pt-0 sm:space-y-5 sm:pt-5">
       <div>
         <p className="text-lg font-semibold">{order.customerName}</p>
         <a href={`tel:${order.phone}`} className="inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">

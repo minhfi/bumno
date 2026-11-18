@@ -15,40 +15,6 @@ type Props = {
   onUnauthorized: () => void;
 };
 
-const STEPS: OrderStatus[] = ["NEW", "CONFIRMED", "DELIVERING", "COMPLETED"];
-
-/** Where the order is in NEW → CONFIRMED → DELIVERING → COMPLETED; a cancelled order shows one line instead. */
-function StatusTrack({ status }: { status: OrderStatus }) {
-  if (status === "CANCELLED") {
-    return (
-      <p className="flex items-center gap-2 border-l-4 border-chili pl-3 font-semibold text-chili">{STATUS_LABELS.CANCELLED}</p>
-    );
-  }
-  const current = STEPS.indexOf(status);
-  return (
-    <ol aria-label="Tiến trình đơn" className="grid grid-cols-4">
-      {STEPS.map((step, index) => (
-        <li
-          key={step}
-          aria-current={index === current ? "step" : undefined}
-          className={`relative pt-5 text-[13px] leading-tight ${index <= current ? "font-semibold text-ink" : "text-ink/55"}`}
-        >
-          {index > 0 ? (
-            <span aria-hidden className={`absolute right-1/2 top-[7px] h-0.5 w-full ${index <= current ? "bg-rim" : "bg-ink/15"}`} />
-          ) : null}
-          <span
-            aria-hidden
-            className={`absolute left-1/2 top-0 z-10 size-4 -translate-x-1/2 rounded-full ${
-              index < current ? "bg-rim" : index === current ? "bg-rim ring-4 ring-rim/30" : "border-2 border-ink/25 bg-surface"
-            }`}
-          />
-          <span className="block px-1 text-center">{STATUS_LABELS[step]}</span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 /** The current status, the next step and "Đã huỷ" while it is still allowed: what the server accepts. */
 function statusChoices(status: OrderStatus): OrderStatus[] {
   const next = nextStatus(status);
@@ -67,7 +33,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   const [saving, setSaving] = useState<"order" | "edit" | null>(null);
   const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [note, setNote] = useState("");
   const [statusChoice, setStatusChoice] = useState<OrderStatus | null>(null);
@@ -100,7 +65,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
   async function save(changes: { status?: OrderStatus; internalNote?: string } | OrderEdit, kind: "order" | "edit") {
     setSaving(kind);
     setActionError(null);
-    setNotice(null);
     try {
       const order = await apiRequest<OrderDetailData>(`/api/admin/orders/${encodeURIComponent(code)}`, {
         method: "PATCH",
@@ -111,7 +75,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
       setStatusChoice(order.status);
       setConfirmCancel(false);
       setEditing(false);
-      setNotice("Đã cập nhật");
       onUpdated(order);
       // The form may change or disappear (a cancelled order); keep focus inside the dialog.
       if (kind === "edit" || "status" in changes) titleRef.current?.focus();
@@ -169,7 +132,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
             </p>
           ) : null}
           <div aria-live="polite" className="empty:hidden">
-            {notice ? <p className="mt-1 font-medium text-herb">{notice}</p> : null}
             {actionError ? <p role="alert" className="mt-1 font-medium text-chili">{actionError}</p> : null}
           </div>
         </div>
@@ -198,8 +160,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
 
         {order ? (
           <>
-            <StatusTrack status={order.status} />
-
             {editing ? (
               <OrderEditForm
                 order={order}
@@ -212,7 +172,7 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
               />
             ) : (
               <>
-                <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-4 sm:pt-5">
+                <section aria-labelledby="customer-title" className="border-t border-ink/10 pt-4 first:border-t-0 first:pt-0 sm:pt-5">
                   <h3 id="customer-title" className="sr-only">Khách hàng</h3>
                   <p className="text-lg font-semibold">{order.customerName}</p>
                   <a href={`tel:${order.phone}`} className="mt-0.5 inline-block text-lg tabular-nums text-rim-strong underline underline-offset-4">
@@ -230,7 +190,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                       type="button"
                       onClick={() => {
                         setEditing(true);
-                        setNotice(null);
                         setActionError(null);
                         setConfirmCancel(false);
                       }}
@@ -284,7 +243,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                     onChange={(e) => {
                       if (isOrderStatus(e.target.value)) setStatusChoice(e.target.value);
                       setConfirmCancel(false);
-                      setNotice(null);
                     }}
                     className="mt-2 block min-h-10 w-full rounded-lg border border-ink/20 bg-surface px-3 focus:border-rim-strong disabled:opacity-60 sm:min-h-9 sm:text-sm"
                   >
@@ -307,7 +265,6 @@ export function OrderDetail({ code, onClose, onUpdated, onUnauthorized }: Props)
                     value={note}
                     onChange={(e) => {
                       setNote(e.target.value);
-                      setNotice(null);
                     }}
                     className="mt-2 block h-[4.5rem] w-full rounded-lg border border-ink/20 bg-surface px-3 py-2 focus:border-rim-strong sm:h-auto"
                   />

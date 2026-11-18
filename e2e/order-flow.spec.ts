@@ -37,8 +37,8 @@ test.describe("order flow", () => {
     await expect(dialog).toContainText("Ít hành");
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã xác nhận" });
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
-    await expect(dialog.getByText("Đã cập nhật")).toBeVisible();
-    await expect(dialog.getByRole("listitem").and(dialog.locator("[aria-current=step]"))).toHaveText("Đã xác nhận");
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("CONFIRMED");
+    await expect(dialog.getByRole("button", { name: "Lưu", exact: true })).toBeDisabled();
 
     await dialog.getByLabel("Ghi chú nội bộ").fill("Đã gọi khách");
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
@@ -48,7 +48,7 @@ test.describe("order flow", () => {
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã huỷ" });
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await dialog.getByRole("button", { name: "Xác nhận huỷ" }).click();
-    await expect(dialog.getByText("Đã huỷ").first()).toBeVisible();
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("CANCELLED");
     await expect(dialog.getByLabel("Trạng thái")).toBeDisabled();
 
     await dialog.getByRole("button", { name: "Đóng" }).click();
@@ -99,7 +99,7 @@ test.describe("editing an order", () => {
     await expect(dialog).toContainText("60.000đ");
     await dialog.getByRole("button", { name: "Lưu thay đổi" }).click();
 
-    await expect(dialog.getByText("Đã cập nhật")).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Lưu thay đổi" })).toHaveCount(0);
     await expect(dialog).toContainText("12 Lê Lợi, Quận 1");
     await expect(dialog).toContainText("Thêm bánh");
     await expect(dialog).toContainText("60.000đ");
@@ -112,7 +112,7 @@ test.describe("editing an order", () => {
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã huỷ" });
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await dialog.getByRole("button", { name: "Xác nhận huỷ" }).click();
-    await expect(dialog.getByText("Đã huỷ").first()).toBeVisible();
+    await expect(dialog.getByLabel("Trạng thái")).toHaveValue("CANCELLED");
     await expect(dialog.getByRole("button", { name: "Sửa địa chỉ và món" })).toHaveCount(0);
   });
 
