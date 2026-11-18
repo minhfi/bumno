@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatVnd } from "@/config/menu";
 import { ApiError, apiRequest, isAbortError } from "@/lib/api-client";
 import { formatSlot, slotDayLabel } from "@/lib/orders/slots";
-import { canCancel, canEdit, isOrderStatus, nextStatus, STATUS_LABELS } from "@/lib/orders/status";
+import { canCancel, canEdit, isOrderStatus, laterStatuses, STATUS_LABELS } from "@/lib/orders/status";
 import type { OrderDetail as OrderDetailData, OrderStatus } from "@/lib/orders/types";
 import { OrderEditForm, type OrderEdit } from "./OrderEditForm";
 
@@ -15,10 +15,9 @@ type Props = {
   onUnauthorized: () => void;
 };
 
-/** The current status, the next step and "Đã huỷ" while it is still allowed: what the server accepts. */
+/** The current status, every later step and "Đã huỷ" while it is still allowed: what the server accepts. */
 function statusChoices(status: OrderStatus): OrderStatus[] {
-  const next = nextStatus(status);
-  return [status, ...(next ? [next] : []), ...(canCancel(status) ? (["CANCELLED"] as const) : [])];
+  return [status, ...laterStatuses(status), ...(canCancel(status) ? (["CANCELLED"] as const) : [])];
 }
 
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; order: OrderDetailData };

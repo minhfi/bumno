@@ -182,15 +182,25 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
     expect((await patch({ status: "COMPLETED" })).status).toBe(200);
   });
 
-  it("409 INVALID_TRANSITION for skipped steps and final states", async () => {
+  it("skips steps forward in one save", async () => {
     await seedOrder();
+    await seedOrder({ status: "CONFIRMED" });
+    const delivering = await patchOrder(req("/api/admin/orders/BN-1001", { method: "PATCH", body: { status: "DELIVERING" } }), ctx("BN-1001"));
+    expect(delivering.status).toBe(200);
+    expect((await delivering.json()).status).toBe("DELIVERING");
+    const completed = await patchOrder(req("/api/admin/orders/BN-1002", { method: "PATCH", body: { status: "COMPLETED" } }), ctx("BN-1002"));
+    expect((await completed.json()).status).toBe("COMPLETED");
+  });
+
+  it("409 INVALID_TRANSITION for going back and for final states", async () => {
+    await seedOrder({ status: "DELIVERING" });
     await seedOrder({ status: "COMPLETED" });
-    const skip = await patchOrder(req("/api/admin/orders/BN-1001", { method: "PATCH", body: { status: "DELIVERING" } }), ctx("BN-1001"));
-    expect(skip.status).toBe(409);
-    expect((await skip.json()).error.code).toBe("INVALID_TRANSITION");
+    const back = await patchOrder(req("/api/admin/orders/BN-1001", { method: "PATCH", body: { status: "NEW" } }), ctx("BN-1001"));
+    expect(back.status).toBe(409);
+    expect((await back.json()).error.code).toBe("INVALID_TRANSITION");
     const cancelFinal = await patchOrder(req("/api/admin/orders/BN-1002", { method: "PATCH", body: { status: "CANCELLED" } }), ctx("BN-1002"));
     expect(cancelFinal.status).toBe(409);
-    expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).status).toBe("NEW");
+    expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).status).toBe("DELIVERING");
   });
 
   it("cancels before completion", async () => {

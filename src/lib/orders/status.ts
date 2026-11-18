@@ -24,9 +24,17 @@ export function canCancel(from: OrderStatus): boolean {
   return NEXT[from] !== null;
 }
 
+/** Every step after `from` on NEW → CONFIRMED → DELIVERING → COMPLETED; the shop may skip ahead. */
+export function laterStatuses(from: OrderStatus): OrderStatus[] {
+  const later: OrderStatus[] = [];
+  for (let next = NEXT[from]; next !== null; next = NEXT[next]) later.push(next);
+  return later;
+}
+
+/** Forward by any number of steps, or cancel before completion; never back. */
 export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
   if (to === "CANCELLED") return canCancel(from);
-  return NEXT[from] === to;
+  return laterStatuses(from).includes(to);
 }
 
 /** The shop can still fix the address and items until the order is out for delivery. */

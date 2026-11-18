@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canCancel, canEdit, canTransition, nextStatus } from "./status";
+import { canCancel, canEdit, canTransition, laterStatuses, nextStatus } from "./status";
 import { ORDER_STATUSES, type OrderStatus } from "./types";
 
 describe("status transitions", () => {
@@ -11,8 +11,18 @@ describe("status transitions", () => {
     expect(nextStatus("CANCELLED")).toBeNull();
   });
 
-  it("only allows the listed transitions", () => {
-    const allowed = new Set(["NEW>CONFIRMED", "CONFIRMED>DELIVERING", "DELIVERING>COMPLETED", "NEW>CANCELLED", "CONFIRMED>CANCELLED", "DELIVERING>CANCELLED"]);
+  it("lists every later step, in order", () => {
+    expect(laterStatuses("NEW")).toEqual(["CONFIRMED", "DELIVERING", "COMPLETED"]);
+    expect(laterStatuses("DELIVERING")).toEqual(["COMPLETED"]);
+    expect(laterStatuses("COMPLETED")).toEqual([]);
+    expect(laterStatuses("CANCELLED")).toEqual([]);
+  });
+
+  it("allows moving forward any number of steps, or cancelling before completion; never back", () => {
+    const allowed = new Set([
+      "NEW>CONFIRMED", "NEW>DELIVERING", "NEW>COMPLETED", "CONFIRMED>DELIVERING", "CONFIRMED>COMPLETED", "DELIVERING>COMPLETED",
+      "NEW>CANCELLED", "CONFIRMED>CANCELLED", "DELIVERING>CANCELLED",
+    ]);
     for (const from of ORDER_STATUSES) {
       for (const to of ORDER_STATUSES) {
         expect(canTransition(from, to), `${from} → ${to}`).toBe(allowed.has(`${from}>${to}`));
