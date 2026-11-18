@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+/*
+ * Bumno palette — white enamel plate with a yellow-orange rim, ink, chili, rau răm.
+ * The landing page is light only; `.theme-admin` follows prefers-color-scheme.
+ */
+:root {
+  --enamel: #f7f9fa;
+  /* Primary fill (buttons, plate rim); text on it uses --on-rim. */
+  --rim: #f59e0b;
+  /* Primary as text/borders on light backgrounds (4.7:1 on --enamel). */
+  --rim-strong: #b45309;
+  --on-rim: #1a2230;
+  --ink: #1a2230;
+  --chili: #c8261c;
+  --herb: #2f6b3a;
+  --surface: #ffffff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-admin {
+    --enamel: #121821;
+    --rim: #fbbf24;
+    --rim-strong: #fbbf24;
+    --ink: #e6eaf0;
+    --chili: #f0675c;
+    --herb: #7cc48a;
+    --surface: color-mix(in oklab, #121821 88%, #e6eaf0);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-enamel: var(--enamel);
+  --color-rim: var(--rim);
+  --color-rim-strong: var(--rim-strong);
+  --color-on-rim: var(--on-rim);
+  --color-ink: var(--ink);
+  --color-chili: var(--chili);
+  --color-herb: var(--herb);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-sign);
+}
+
+a,
+button {
+  touch-action: manipulation;
+}
+
+/* Tailwind v4 resets buttons to the default cursor; every enabled action shows the pointer. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+/* Keep focused elements clear of the sticky order bar on mobile. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-bottom: 5.5rem;
+  }
+}
+
+body {
+  background: var(--enamel);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--rim-strong);
+  outline-offset: 2px;
+}
+
+/* Motion on the landing page: the hero settles in on load, and anchor links scroll smoothly. */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .hero-in {
+    animation: hero-in 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
