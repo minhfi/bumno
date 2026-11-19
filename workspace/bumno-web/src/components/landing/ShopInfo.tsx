@@ -19,14 +19,20 @@ export function ShopInfo() {
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-on-rim/80">Điện thoại / Zalo</dt>
-            <dd className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-              <a href={`tel:${shop.phone}`} className="font-semibold underline underline-offset-4">
-                {shop.phoneDisplay}
-              </a>
-              <a href={shop.zaloUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">
-                Nhắn Zalo
-              </a>
+            <dt className="text-sm font-semibold text-on-rim/80">Đặt hàng</dt>
+            <dd className="mt-1 space-y-1">
+              <p>
+                Gọi:{" "}
+                <a href={`tel:${shop.phone}`} className="font-semibold underline underline-offset-4">
+                  {shop.phoneDisplay}
+                </a>
+              </p>
+              <p>
+                Zalo:{" "}
+                <a href={shop.zaloUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">
+                  {shop.zaloPhoneDisplay}
+                </a>
+              </p>
             </dd>
           </div>
         </dl>

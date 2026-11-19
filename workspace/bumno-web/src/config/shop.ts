@@ -4,7 +4,8 @@ export const shop = {
   address: "Số 5 đường 71, Tân Hưng, Quận 7, TP. Hồ Chí Minh",
   phone: "0355903977",
   phoneDisplay: "0355 903 977",
-  zaloUrl: "https://zalo.me/0355903977",
+  zaloPhoneDisplay: "0325 656 294",
+  zaloUrl: "https://zalo.me/0325656294",
   /** Shipping fee rules shown to customers; the shop still enters each order's fee by hand. */
   shippingRates: ["Free ship từ 2 phần, dưới 1 km.", "Từ 1–3 km: ship 10.000đ.", "Trên 3 km: theo giá app."],
   /** Delivery slots run from this minute of the day (inclusive) to `deliveryEndMinute` (exclusive). */

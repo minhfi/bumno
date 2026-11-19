@@ -1,8 +1,8 @@
 // TODO(nội dung): câu chuyện thật của quán.
 const reasons = [
   {
-    title: "Bánh tráng tại chỗ",
-    body: "Bột gạo xay mỗi đêm, sáng ra mới tráng. Bánh mỏng, dẻo, không bở, cuốn lòng không rách.",
+    title: "Bánh nóng lấy tại lò mỗi ngày",
+    body: "Bánh ướt lấy nóng tại lò mỗi sáng. Bánh mỏng, dẻo, cuốn lòng không rách.",
   },
   {
     title: "Lòng gà trong ngày",
