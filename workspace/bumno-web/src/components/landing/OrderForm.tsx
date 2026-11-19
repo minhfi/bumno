@@ -46,12 +46,10 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return visible;
 }
 
-/** `8:00`, or `8:00 · ngày 18/11` when the slot is not today. */
+/** `08:00 - 18/11/2026` in the shop time zone. */
 function slotLabel(slot: Date): string {
-  const date = shopDateString(slot);
-  if (date === shopDateString(new Date())) return formatSlot(slot);
-  const [, month, day] = date.split("-");
-  return `${formatSlot(slot)} · ngày ${day}/${month}`;
+  const [year, month, day] = shopDateString(slot).split("-");
+  return `${formatSlot(slot).padStart(5, "0")} - ${day}/${month}/${year}`;
 }
 
 export function OrderForm() {

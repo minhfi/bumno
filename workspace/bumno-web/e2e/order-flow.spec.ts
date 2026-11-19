@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { createOrderViaApi, login, vnTime } from "./helpers";
+import { createOrderViaApi, FAKE_NOW, login, vnTime } from "./helpers";
+
+/** Order form slot label on the FAKE_NOW day, e.g. `08:00 - 19/11/2026`. */
+const slotOption = (hhmm: string) => {
+  const [year, month, day] = FAKE_NOW.slice(0, 10).split("-");
+  return `${hhmm} - ${day}/${month}/${year}`;
+};
 
 test.describe("order flow", () => {
   test("customer orders, admin sees the order and confirms it", async ({ page }) => {
@@ -16,7 +22,7 @@ test.describe("order flow", () => {
     await page.getByLabel("Họ tên").fill("Nguyễn Lan");
     await page.getByLabel("Số điện thoại").fill("0901 234 567");
     await page.getByLabel("Địa chỉ giao").fill("12 Lê Lợi, Quận 1");
-    await page.getByLabel("Giờ nhận").selectOption({ label: "8:00" });
+    await page.getByLabel("Giờ nhận").selectOption({ label: slotOption("08:00") });
     await page.getByLabel(/Ghi chú/).fill("Ít hành");
     await page.getByRole("button", { name: "Đặt đơn", exact: true }).click();
 
