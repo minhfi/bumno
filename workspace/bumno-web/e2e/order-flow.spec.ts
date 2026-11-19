@@ -10,8 +10,8 @@ test.describe("order flow", () => {
     await page.getByRole("link", { name: "Đặt ngay" }).first().click();
     await page.getByRole("button", { name: "Thêm 1 Phần thường" }).click();
     await page.getByRole("button", { name: "Thêm 1 Phần thường" }).click();
-    await page.getByRole("button", { name: "Thêm 1 Thêm lòng và gà" }).click();
-    await expect(page.getByLabel("Tóm tắt đơn")).toContainText("85.000đ");
+    await page.getByRole("button", { name: "Thêm 1 Lòng hoặc thịt thêm" }).click();
+    await expect(page.getByLabel("Tóm tắt đơn")).toContainText("70.000đ");
 
     await page.getByLabel("Họ tên").fill("Nguyễn Lan");
     await page.getByLabel("Số điện thoại").fill("0901 234 567");
@@ -95,18 +95,18 @@ test.describe("editing an order", () => {
 
     await dialog.getByRole("button", { name: "Sửa địa chỉ và món" }).click();
     await dialog.getByLabel("Địa chỉ giao").fill("12 Lê Lợi, Quận 1");
-    await dialog.getByRole("button", { name: "Thêm 1 Thêm bánh" }).click();
-    await expect(dialog).toContainText("60.000đ");
+    await dialog.getByRole("button", { name: "Thêm 1 Bánh thêm" }).click();
+    await expect(dialog).toContainText("45.000đ");
     await dialog.getByRole("button", { name: "Lưu thay đổi" }).click();
 
     await expect(dialog.getByRole("button", { name: "Lưu thay đổi" })).toHaveCount(0);
     await expect(dialog).toContainText("12 Lê Lợi, Quận 1");
-    await expect(dialog).toContainText("Thêm bánh");
-    await expect(dialog).toContainText("60.000đ");
+    await expect(dialog).toContainText("Bánh thêm");
+    await expect(dialog).toContainText("45.000đ");
     await dialog.getByRole("button", { name: "Đóng" }).click();
     await expect(page.getByRole("button", { name: `Xem đơn ${code}` })).toBeVisible();
     const row = page.locator("tr, li").filter({ has: page.getByRole("button", { name: `Xem đơn ${code}` }) }).filter({ visible: true });
-    await expect(row).toContainText("60.000đ");
+    await expect(row).toContainText("45.000đ");
 
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Đã huỷ" });
@@ -119,7 +119,7 @@ test.describe("editing an order", () => {
   test("admin sets a shipping fee; the total in the drawer and the list includes it; locked once completed", async ({ page, request }, testInfo) => {
     await page.clock.setFixedTime(vnTime("07:00"));
     const ip = `10.9.3.${testInfo.project.name === "mobile" ? 1 : 2}`;
-    const { code } = await createOrderViaApi(request, ip, `Khách ship ${testInfo.project.name}`); // 50.000đ
+    const { code } = await createOrderViaApi(request, ip, `Khách ship ${testInfo.project.name}`); // 40.000đ
     await login(page);
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
     const dialog = page.getByRole("dialog", { name: `Đơn ${code}` });
@@ -134,13 +134,13 @@ test.describe("editing an order", () => {
     await expect(fee).toHaveValue("15.000");
     const items = dialog.getByRole("region", { name: "Món" });
     await expect(items).toContainText(/Phí ship\s*15\.000đ/);
-    await expect(items).toContainText(/Tổng\s*65\.000đ/);
+    await expect(items).toContainText(/Tổng\s*55\.000đ/);
 
     // The edit form's running total keeps the fee.
     await dialog.getByRole("button", { name: "Sửa địa chỉ và món" }).click();
-    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("65.000đ");
-    await dialog.getByRole("button", { name: "Thêm 1 Thêm bánh" }).click();
-    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("75.000đ");
+    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("55.000đ");
+    await dialog.getByRole("button", { name: "Thêm 1 Bánh thêm" }).click();
+    await expect(dialog.getByRole("status").filter({ hasText: "Tổng tạm tính" })).toContainText("60.000đ");
     await dialog.getByRole("button", { name: "Bỏ qua" }).click();
 
     // The fee can be saved together with a status change.
@@ -148,11 +148,11 @@ test.describe("editing an order", () => {
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Đang giao" });
     await dialog.getByRole("button", { name: "Lưu", exact: true }).click();
     await expect(dialog.getByLabel("Trạng thái")).toHaveValue("DELIVERING");
-    await expect(items).toContainText(/Tổng\s*70\.000đ/);
+    await expect(items).toContainText(/Tổng\s*60\.000đ/);
 
     await dialog.getByRole("button", { name: "Đóng" }).click();
     const row = page.locator("tr, li").filter({ has: page.getByRole("button", { name: `Xem đơn ${code}` }) }).filter({ visible: true });
-    await expect(row).toContainText("70.000đ");
+    await expect(row).toContainText("60.000đ");
 
     await page.getByRole("button", { name: `Xem đơn ${code}` }).click();
     await dialog.getByLabel("Trạng thái").selectOption({ label: "Hoàn thành" });

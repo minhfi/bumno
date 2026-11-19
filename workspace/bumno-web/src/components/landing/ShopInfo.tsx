@@ -30,8 +30,14 @@ export function ShopInfo() {
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-semibold text-on-rim/80">Khu vực giao</dt>
-            <dd className="mt-1">{shop.deliveryArea}</dd>
+            <dt className="text-sm font-semibold text-on-rim/80">Phí ship</dt>
+            <dd className="mt-1">
+              <ul className="space-y-0.5">
+                {shop.shippingRates.map((rate) => (
+                  <li key={rate}>{rate}</li>
+                ))}
+              </ul>
+            </dd>
           </div>
         </dl>
       </div>

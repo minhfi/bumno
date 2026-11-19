@@ -5,7 +5,8 @@ export const shop = {
   phone: "0355903977",
   phoneDisplay: "0355 903 977",
   zaloUrl: "https://zalo.me/0355903977",
-  deliveryArea: "Miễn phí ship trong vòng 2 km.",
+  /** Shipping fee rules shown to customers; the shop still enters each order's fee by hand. */
+  shippingRates: ["Free ship từ 2 phần, dưới 1 km.", "Từ 1–3 km: ship 10.000đ.", "Trên 3 km: theo giá app."],
   /** Delivery slots run from this minute of the day (inclusive) to `deliveryEndMinute` (exclusive). */
   deliveryStartMinute: 6 * 60,
   deliveryEndMinute: 20 * 60,

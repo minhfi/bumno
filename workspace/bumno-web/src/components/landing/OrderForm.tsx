@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { formatVnd, menu, type ProductId } from "@/config/menu";
+import { shop } from "@/config/shop";
 import { ApiError, apiRequest } from "@/lib/api-client";
 import { createOrderSchema, fieldErrors, MAX_QUANTITY, type CreateOrderInput } from "@/lib/orders/schema";
 import { availableSlots, formatSlot, shopDateString } from "@/lib/orders/slots";
@@ -151,6 +152,11 @@ export function OrderForm() {
       <p className="mt-3 max-w-[60ch] text-ink/80">
         Chọn món, điền thông tin, quán sẽ gọi xác nhận đơn và báo phí ship sau khi có địa chỉ.
       </p>
+      <ul aria-label="Phí ship" className="mt-2 max-w-[60ch] list-disc space-y-0.5 pl-5 text-ink/80">
+        {shop.shippingRates.map((rate) => (
+          <li key={rate}>{rate}</li>
+        ))}
+      </ul>
 
       <div className="mt-8">
         {result ? (

@@ -45,15 +45,15 @@ describe("POST /api/orders", () => {
     expect(response.status).toBe(201);
     expect(await response.json()).toEqual({
       code: "BN-1001",
-      total: 85_000,
+      total: 70_000,
       deliverySlot: "2026-11-09T01:00:00.000Z",
       items: [
-        { name: "Phần thường", unitPrice: 35_000, quantity: 2 },
-        { name: "Thêm lòng và gà", unitPrice: 15_000, quantity: 1 },
+        { name: "Phần thường", unitPrice: 30_000, quantity: 2 },
+        { name: "Lòng hoặc thịt thêm", unitPrice: 10_000, quantity: 1 },
       ],
     });
     const saved = await db.order.findUniqueOrThrow({ where: { number: 1001 }, include: { items: true } });
-    expect(saved).toMatchObject({ status: "NEW", total: 85_000, phone: "0901234567", note: "Ít hành" });
+    expect(saved).toMatchObject({ status: "NEW", total: 70_000, phone: "0901234567", note: "Ít hành" });
     expect(saved.createdAt.toISOString()).toBe(new Date(OPEN_NOW).toISOString());
     expect(saved.items).toHaveLength(2);
   });

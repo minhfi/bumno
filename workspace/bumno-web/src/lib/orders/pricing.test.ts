@@ -9,15 +9,15 @@ describe("priceOrder", () => {
       { productId: "them-long", quantity: 0 },
     ]);
     expect(lines).toEqual([
-      { productId: "phan-thuong", name: "Phần thường", unitPrice: 35_000, quantity: 2 },
-      { productId: "them-banh", name: "Thêm bánh", unitPrice: 10_000, quantity: 1 },
+      { productId: "phan-thuong", name: "Phần thường", unitPrice: 30_000, quantity: 2 },
+      { productId: "them-banh", name: "Bánh thêm", unitPrice: 5_000, quantity: 1 },
     ]);
-    expect(total).toBe(80_000);
+    expect(total).toBe(65_000);
   });
 
   it("ignores any price sent by the client", () => {
     const tampered = [{ productId: "phan-dac-biet", quantity: 1, unitPrice: 1, price: 1 }];
-    expect(priceOrder(tampered).total).toBe(50_000);
+    expect(priceOrder(tampered).total).toBe(40_000);
   });
 
   it("throws for products not on the menu", () => {
@@ -27,7 +27,7 @@ describe("priceOrder", () => {
 
 describe("repriceOrder", () => {
   const existing = [
-    { productId: "phan-thuong", name: "Phần thường", unitPrice: 30_000, quantity: 1 },
+    { productId: "phan-thuong", name: "Phần thường", unitPrice: 25_000, quantity: 1 },
     { productId: "mon-cu", name: "Món cũ", unitPrice: 20_000, quantity: 1 },
   ];
 
@@ -39,10 +39,10 @@ describe("repriceOrder", () => {
     expect(result).toEqual({
       ok: true,
       lines: [
-        { productId: "phan-thuong", name: "Phần thường", unitPrice: 30_000, quantity: 2 },
-        { productId: "them-banh", name: "Thêm bánh", unitPrice: 10_000, quantity: 1 },
+        { productId: "phan-thuong", name: "Phần thường", unitPrice: 25_000, quantity: 2 },
+        { productId: "them-banh", name: "Bánh thêm", unitPrice: 5_000, quantity: 1 },
       ],
-      total: 70_000,
+      total: 55_000,
     });
   });
 

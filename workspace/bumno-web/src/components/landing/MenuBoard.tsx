@@ -16,7 +16,7 @@ export function MenuBoard() {
                 <span aria-hidden className="mb-1.5 flex-1 border-b-[3px] border-dotted border-ink/25" />
                 <span className="font-display text-[28px] font-bold tabular-nums text-ink">{formatVnd(item.price)}</span>
               </div>
-              <p className="mt-1 max-w-[60ch] text-[15px] text-ink/75">{item.description}</p>
+              {item.description ? <p className="mt-1 max-w-[60ch] text-[15px] text-ink/75">{item.description}</p> : null}
             </li>
           ))}
         </ul>

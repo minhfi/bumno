@@ -216,8 +216,8 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
       order.items.find((item) => item.productId === productId);
 
     it("changes the address and items, keeps old prices, prices new items from the menu and recomputes the total", async () => {
-      await seedOrder(); // 1 x phan-thuong @ 35.000 (stored), menu price is the same today
-      await db.orderItem.updateMany({ where: { productId: "phan-thuong" }, data: { unitPrice: 30_000 } });
+      await seedOrder(); // 1 x phan-thuong @ 35.000 (stored)
+      await db.orderItem.updateMany({ where: { productId: "phan-thuong" }, data: { unitPrice: 25_000 } });
       const response = await patch({
         address: "  99 Nguyễn Huệ, Quận 1 ",
         items: [
@@ -228,10 +228,10 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
       expect(response.status).toBe(200);
       const order = await response.json();
       expect(order.address).toBe("99 Nguyễn Huệ, Quận 1");
-      expect(lineOf(order, "phan-thuong")).toMatchObject({ unitPrice: 30_000, quantity: 2 });
-      expect(lineOf(order, "them-banh")).toMatchObject({ name: "Thêm bánh", unitPrice: 10_000, quantity: 1 });
-      expect(order.total).toBe(70_000);
-      expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).total).toBe(70_000);
+      expect(lineOf(order, "phan-thuong")).toMatchObject({ unitPrice: 25_000, quantity: 2 });
+      expect(lineOf(order, "them-banh")).toMatchObject({ name: "Bánh thêm", unitPrice: 5_000, quantity: 1 });
+      expect(order.total).toBe(55_000);
+      expect((await db.order.findUniqueOrThrow({ where: { number: 1001 } })).total).toBe(55_000);
       expect(await db.orderItem.count()).toBe(2);
     });
 
@@ -247,7 +247,7 @@ describe("GET/PATCH /api/admin/orders/:code", () => {
       expect(response.status).toBe(200);
       expect(order.items).toHaveLength(1);
       expect(order.items[0]).toMatchObject({ productId: "them-long", quantity: 2 });
-      expect(order.total).toBe(30_000);
+      expect(order.total).toBe(20_000);
     });
 
     it("keeps a product that left the menu while it is in the order, but cannot add one", async () => {

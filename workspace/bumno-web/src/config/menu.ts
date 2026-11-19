@@ -8,32 +8,37 @@ export type MenuItem = {
   addon?: boolean;
 };
 
-// TODO(nội dung): tên món, mô tả và giá thật.
 export const menu = [
   {
     id: "phan-thuong",
     name: "Phần thường",
-    description: "Bánh ướt, lòng gà, trứng non, rau răm, hành phi.",
-    price: 35_000,
+    description: "Thịt xé, trứng non, lòng, da, xương.",
+    price: 30_000,
+  },
+  {
+    id: "phan-canh",
+    name: "Phần cánh",
+    description: "",
+    price: 30_000,
   },
   {
     id: "phan-dac-biet",
     name: "Phần đặc biệt",
-    description: "Gấp đôi lòng, thêm tim gan, trứng non và chả.",
-    price: 50_000,
+    description: "Đùi hoặc má đùi, trứng non, lòng, da, xương.",
+    price: 40_000,
   },
   {
     id: "them-long",
-    name: "Thêm lòng và gà",
-    description: "Một phần lòng gà luộc thêm.",
-    price: 15_000,
+    name: "Lòng hoặc thịt thêm",
+    description: "Một phần lòng hoặc thịt thêm.",
+    price: 10_000,
     addon: true,
   },
   {
     id: "them-banh",
-    name: "Thêm bánh",
+    name: "Bánh thêm",
     description: "Một phần bánh ướt thêm.",
-    price: 10_000,
+    price: 5_000,
     addon: true,
   },
 ] as const satisfies readonly MenuItem[];

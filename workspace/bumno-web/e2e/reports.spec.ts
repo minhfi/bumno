@@ -37,7 +37,7 @@ test.describe("reports", () => {
     await expect(page.getByRole("link", { name: "Báo cáo" })).toHaveAttribute("aria-current", "page");
     await expect(page.getByRole("button", { name: "Hôm nay" })).toHaveAttribute("aria-pressed", "true");
 
-    const revenue = before.current.revenue + 100_000;
+    const revenue = before.current.revenue + 80_000;
     const completed = before.current.completedOrders + 2;
     const tiles = page.locator("dl");
     await expect(tiles.getByText(vnd(revenue), { exact: true })).toBeVisible();
@@ -45,10 +45,10 @@ test.describe("reports", () => {
     await expect(tiles.getByText(vnd(Math.round(revenue / completed)), { exact: true })).toBeVisible();
 
     // Both orders were for 8:00 today: the 8h bar carries them, and the dish table adds up.
-    const bar = page.getByRole("img", { name: new RegExp(`^8:00–9:00, .*: ${vnd(before.series[2].revenue + 100_000)}`) });
+    const bar = page.getByRole("img", { name: new RegExp(`^8:00–9:00, .*: ${vnd(before.series[2].revenue + 80_000)}`) });
     await expect(bar).toHaveCount(1);
     const special = page.getByRole("row", { name: /Phần đặc biệt/ });
-    if (testInfo.project.name === "desktop") await expect(special).toContainText(vnd((before.items.find((i) => i.productId === "phan-dac-biet")?.revenue ?? 0) + 100_000));
+    if (testInfo.project.name === "desktop") await expect(special).toContainText(vnd((before.items.find((i) => i.productId === "phan-dac-biet")?.revenue ?? 0) + 80_000));
 
     await page.getByRole("button", { name: "7 ngày" }).click();
     await expect(page).toHaveURL(/\/admin\/reports\?range=7d$/);
@@ -84,7 +84,7 @@ test.describe("reports", () => {
     const ip = `10.9.4.${testInfo.project.name === "mobile" ? 1 : 2}`;
     const { code } = await createOrderViaApi(request, ip, `Khách làm mới ${testInfo.project.name}`);
     await completeOrder(page, code);
-    const after = vnd(before.current.revenue + 50_000);
+    const after = vnd(before.current.revenue + 40_000);
     await expect(tiles.getByText(after, { exact: true })).toHaveCount(0);
     await page.clock.runFor(30_000);
     await expect(tiles.getByText(after, { exact: true })).toBeVisible();
