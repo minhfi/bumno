@@ -41,11 +41,11 @@ describe("previousWindow", () => {
 describe("bucketStarts", () => {
   const at = vn("2026-11-17T07:00");
 
-  it("today: one bucket per delivery hour, 6:00 to 19:00", () => {
+  it("today: one bucket per delivery hour, 6:00 to 14:00", () => {
     const starts = bucketStarts(RANGE_BUCKET.today, reportWindow("today", at));
-    expect(starts).toHaveLength(14);
+    expect(starts).toHaveLength(9);
     expect(starts[0].toISOString()).toBe(iso("2026-11-17T06:00"));
-    expect(starts.at(-1)?.toISOString()).toBe(iso("2026-11-17T19:00"));
+    expect(starts.at(-1)?.toISOString()).toBe(iso("2026-11-17T14:00"));
   });
 
   it("7 / 30 days: one bucket per shop day", () => {

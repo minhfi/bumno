@@ -83,7 +83,7 @@ describe("GET /api/admin/reports", () => {
       cancelRate: 0,
     });
     expect(data.pending).toEqual({ orders: 0, total: 0 });
-    expect(data.series).toHaveLength(14);
+    expect(data.series).toHaveLength(9);
     expect(data.series.every((point) => point.revenue === 0 && point.completedOrders === 0)).toBe(true);
     expect(data.items).toEqual([]);
   });
@@ -91,7 +91,7 @@ describe("GET /api/admin/reports", () => {
   it("today: COMPLETED revenue per hour, pending, cancel rate; tomorrow and yesterday excluded", async () => {
     await seedOrder("2026-11-17T06:00", "COMPLETED", [regular(2)]); // 70k
     await seedOrder("2026-11-17T06:30", "COMPLETED", [special()]); // 50k
-    await seedOrder("2026-11-17T19:30", "COMPLETED", [regular()]); // 35k
+    await seedOrder("2026-11-17T14:30", "COMPLETED", [regular()]); // 35k
     await seedOrder("2026-11-17T08:00", "NEW", [special()]);
     await seedOrder("2026-11-17T09:00", "DELIVERING", [regular()]);
     await seedOrder("2026-11-17T10:00", "CANCELLED", [regular()]);
@@ -113,7 +113,7 @@ describe("GET /api/admin/reports", () => {
 
     const hour = (h: number) => data.series.find((p) => p.start === vn(`2026-11-17T${String(h).padStart(2, "0")}:00`).toISOString());
     expect(hour(6)).toEqual({ start: vn("2026-11-17T06:00").toISOString(), revenue: 120_000, completedOrders: 2 });
-    expect(hour(19)?.revenue).toBe(35_000);
+    expect(hour(14)?.revenue).toBe(35_000);
     expect(data.series.reduce((sum, p) => sum + p.revenue, 0)).toBe(155_000);
   });
 

@@ -15,7 +15,7 @@ export function ShopInfo() {
           <div>
             <dt className="text-sm font-semibold text-on-rim/80">Giờ giao hàng</dt>
             <dd className="mt-1">
-              {shop.deliveryStartMinute / 60}:00–{shop.deliveryEndMinute / 60}:00 mỗi ngày. Đặt lúc nào cũng được.
+              {shop.deliveryStartMinute / 60}:00–{shop.deliveryEndMinute / 60}:00 mỗi ngày.
             </dd>
           </div>
           <div>
@@ -27,16 +27,6 @@ export function ShopInfo() {
               <a href={shop.zaloUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-4">
                 Nhắn Zalo
               </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm font-semibold text-on-rim/80">Phí ship</dt>
-            <dd className="mt-1">
-              <ul className="space-y-0.5">
-                {shop.shippingRates.map((rate) => (
-                  <li key={rate}>{rate}</li>
-                ))}
-              </ul>
             </dd>
           </div>
         </dl>
